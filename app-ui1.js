@@ -1,6 +1,6 @@
 function shell(){
  const stages=data.stages||[], st=stages[stageIndex], title=data.translation?.title||data.game?.name||'Spiknutí';
- root.innerHTML=`<div class="shell"><div class="top"><div class="brand">HIDDEN ADVENTURES</div><div class="topActions"><div class="progress">${stageIndex+1} / ${stages.length}</div><button id="archiveBtn" class="archiveBtn" type="button">Archiv</button><button id="exitGame" class="exitGameBtn" type="button">Ukončit hru</button></div></div>
+ root.innerHTML=`<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><div class="topActions"><div class="progress">${stageIndex+1} / ${stages.length}</div><button id="archiveBtn" class="archiveBtn" type="button">Archiv</button><button id="exitGame" class="exitGameBtn" type="button">Ukončit hru</button></div></div>
  <section class="case"><div class="casehead"><h1>${esc(title)}</h1></div>
  <div id="feed" class="feed chat"></div><div id="continueBar" class="continuebar hidden"><button id="continueBtn" class="btn">Pokračovat</button></div></section></div>`;
  document.getElementById('continueBtn').onclick=advance;
