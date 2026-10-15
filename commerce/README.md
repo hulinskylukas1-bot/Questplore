@@ -33,6 +33,6 @@ Váš herní kód:
 {{LICENSE_CODE}}
 
 Hru spustíte na:
-https://hulinskylukas1-bot.github.io/hidden-adventures-player/
+https://hulinskylukas1-bot.github.io/questplore/
 
 Kód si uschovejte. Umožňuje návrat do rozehrané hry.
