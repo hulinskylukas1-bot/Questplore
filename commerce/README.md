@@ -33,6 +33,6 @@ Váš herní kód:
 {{LICENSE_CODE}}
 
 Hru spustíte na:
-https://hulinskylukas1-bot.github.io/questplore/
+https://hulinskylukas1-bot.github.io/Questplore/
 
 Kód si uschovejte. Umožňuje návrat do rozehrané hry.
