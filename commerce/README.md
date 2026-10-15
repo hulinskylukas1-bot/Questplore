@@ -1,4 +1,4 @@
-# Hidden Adventures – commerce test flow
+# Questplore – commerce test flow
 
 Aktuální stav bez IČO a bez ostré platební brány:
 
@@ -25,7 +25,7 @@ Funkce pro vytvoření a dokončení testovací objednávky nejsou dostupné př
 
 ## E-mail po zaplacení – zamýšlený obsah
 
-Předmět: Hidden Adventures – váš kód ke hře Spiknutí
+Předmět: Questplore – váš kód ke hře Spiknutí
 
 Děkujeme za objednávku hry Spiknutí.
 
