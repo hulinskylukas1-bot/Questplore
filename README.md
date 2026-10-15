@@ -1,4 +1,4 @@
-# Hidden Adventures Player v1.0.3
+# Questplore Player v1.0.3
 
 Úprava ukončení hry:
 - „Uložit hru pro možnost návratu“ ponechá postup na serveru a vrátí hráče na zadání kódu.
