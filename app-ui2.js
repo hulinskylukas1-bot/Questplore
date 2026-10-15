@@ -191,7 +191,7 @@ async function openArchive(){
  overlay.innerHTML=`
    <div class="archivePanel" role="dialog" aria-modal="true" aria-label="Archiv důkazů">
      <div class="archiveHead">
-       <div><div class="archiveKicker">HIDDEN ADVENTURES</div><h2>Archiv</h2></div>
+       <div><div class="archiveKicker">QUESTPLORE</div><h2>Archiv</h2></div>
        <button class="archiveClose" type="button" aria-label="Zavřít archiv">×</button>
      </div>
      <div class="archiveTabs">
@@ -335,7 +335,7 @@ function exitGame(){
  };
 }
 async function boot(code){
- root.innerHTML=`<div class="shell"><div class="top"><div class="brand">HIDDEN ADVENTURES</div><button id="cancelLoad" class="exitGameBtn" type="button">Jiný kód</button></div><section class="case"><div class="casehead"><h1>Spiknutí</h1></div><div class="bubble">Načítám rozehranou hru…</div></section></div>`;
+ root.innerHTML=`<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><button id="cancelLoad" class="exitGameBtn" type="button">Jiný kód</button></div><section class="case"><div class="casehead"><h1>Spiknutí</h1></div><div class="bubble">Načítám rozehranou hru…</div></section></div>`;
  const cancelLoad=document.getElementById('cancelLoad'); if(cancelLoad)cancelLoad.onclick=clearLocalSession;
  const controller=new AbortController();
  const timer=setTimeout(()=>controller.abort(),15000);
