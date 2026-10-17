@@ -33,7 +33,7 @@ const SUPABASE_KEY='sb_publishable_w0N986iN3rTUBQjDLogNhQ_BXcmNRWH';
 const supabase=createClient(SUPABASE_URL,SUPABASE_KEY);
 const root=document.getElementById('app');
 const qs=new URLSearchParams(location.search);
-const versionId=qs.get('version'),onlyBlockId=qs.get('block');
+const versionId=qs.get('version'),onlyBlockId=qs.get('block'),onlyStageId=qs.get('stage');
 const esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const norm=s=>(s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 function distance(a,b){a=norm(a);b=norm(b);const m=a.length,n=b.length,d=Array.from({length:m+1},()=>Array(n+1).fill(0));for(let i=0;i<=m;i++)d[i][0]=i;for(let j=0;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
@@ -84,11 +84,11 @@ function bind(w,b,onDone){
 function condMatches(c={}){if(!c||!Object.keys(c).length)return true;const ch=c.choice;if(!ch)return false;const actual=choices[ch.block_id];if(Array.isArray(ch.one_of))return ch.one_of.some(v=>norm(v)===norm(actual));if(Object.prototype.hasOwnProperty.call(ch,'equals'))return norm(actual)===norm(ch.equals);if(Object.prototype.hasOwnProperty.call(ch,'not_equals'))return norm(actual)!==norm(ch.not_equals);return false}
 function nextStage(si){const st=stages[si],outs=transitions.filter(t=>t.from_stage_id===st.id).sort((a,b)=>Number(b.priority||0)-Number(a.priority||0));for(const t of outs){if(condMatches(t.condition||{})){const i=stages.findIndex(s=>s.id===t.to_stage_id);if(i>=0)return i}}return -1}
 
-function shell(){root.innerHTML='<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><div class="preview-toolbar"><div class="progress"></div><button id="restart" class="archiveBtn" type="button">Restart</button><button id="close" class="exitGameBtn" type="button">Zavřít náhled</button></div></div><section class="case"><div class="casehead"><h1>'+esc(translation?.title||game?.name||'Náhled')+'</h1></div><div id="feed" class="feed chat"></div><div id="continueBar" class="continuebar hidden"><button id="continueBtn" class="btn">Pokračovat</button></div></section></div>';document.getElementById('close').onclick=()=>window.close();document.getElementById('restart').onclick=()=>{choices={};stageIndex=0;renderStage()}}
+function shell(){root.innerHTML='<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><div class="preview-toolbar"><div class="progress"></div><button id="restart" class="archiveBtn" type="button">Restart</button><button id="close" class="exitGameBtn" type="button">Zavřít náhled</button></div></div><section class="case"><div class="casehead"><h1>'+esc(translation?.title||game?.name||'Náhled')+'</h1></div><div id="feed" class="feed chat"></div><div id="continueBar" class="continuebar hidden"><button id="continueBtn" class="btn">Pokračovat</button></div></section></div>';document.getElementById('close').onclick=()=>window.close();document.getElementById('restart').onclick=()=>{choices={};if(onlyStageId){const i=stages.findIndex(s=>s.id===onlyStageId);stageIndex=i>=0?i:0}else stageIndex=0;renderStage()}}
 function renderStage(){
  const feed=document.getElementById('feed');feed.innerHTML='';document.getElementById('continueBar').classList.add('hidden');const st=stages[stageIndex];document.querySelector('.progress').textContent=(stageIndex+1)+' / '+stages.length;const label=document.createElement('div');label.className='preview-stage-name';label.textContent='Náhled části: '+st.internal_name;feed.appendChild(label);
  const blocks=st.blocks||[];let i=0;
- const next=()=>{if(i>=blocks.length){const ni=nextStage(stageIndex),bar=document.getElementById('continueBar'),btn=document.getElementById('continueBtn');bar.classList.remove('hidden');btn.textContent=ni>=0?'Pokračovat':'Konec hry';btn.onclick=()=>{if(ni>=0){stageIndex=ni;renderStage()}else alert('Konec hry — náhled.')} ;return}const b=blocks[i++];const w=document.createElement('div');w.className='reveal shown';w.innerHTML=blockHTML(b);feed.appendChild(w);const interactive=['text_answer','multi_term_answer','choice','quiz','sorting','logic_grid','gps','gps_confirmation','photo','confirm'].includes(b.block_type);bind(w,b,()=>setTimeout(next,180));if(!interactive)setTimeout(next,80)};
+ const next=()=>{if(i>=blocks.length){const bar=document.getElementById('continueBar'),btn=document.getElementById('continueBtn');bar.classList.remove('hidden');if(onlyStageId){btn.textContent='Konec části';btn.disabled=true;return}const ni=nextStage(stageIndex);btn.textContent=ni>=0?'Pokračovat':'Konec hry';btn.onclick=()=>{if(ni>=0){stageIndex=ni;renderStage()}else alert('Konec hry — náhled.')} ;return}const b=blocks[i++];const w=document.createElement('div');w.className='reveal shown';w.innerHTML=blockHTML(b);feed.appendChild(w);const interactive=['text_answer','multi_term_answer','choice','quiz','sorting','logic_grid','gps','gps_confirmation','photo','confirm'].includes(b.block_type);bind(w,b,()=>setTimeout(next,180));if(!interactive)setTimeout(next,80)};
  next();
 }
 
@@ -107,7 +107,12 @@ async function load(){
  const ids=stages.map(s=>s.id);const {data:bb}=await supabase.from('blocks').select('id,stage_id,block_type,position,config,block_translations(locale,content)').in('stage_id',ids).order('position');const blocks=bb||[];
  for(const s of stages)s.blocks=blocks.filter(b=>b.stage_id===s.id).map(b=>({...b,content:b.block_translations?.find(t=>t.locale==='cs')?.content||b.block_translations?.[0]?.content||{}}));
  shell();
- if(onlyBlockId){
+ if(onlyStageId){
+   const i=stages.findIndex(s=>s.id===onlyStageId);
+   if(i<0){root.querySelector('#feed').innerHTML='<div class="preview-empty">Část nebyla nalezena.</div>';return}
+   stageIndex=i;
+   renderStage();
+ }else if(onlyBlockId){
    const b=blocks.find(x=>x.id===onlyBlockId);const st=stages.find(s=>s.id===b?.stage_id);if(!b||!st){root.querySelector('#feed').innerHTML='<div class="preview-empty">Blok nebyl nalezen.</div>';return}
    stageIndex=stages.findIndex(s=>s.id===st.id);document.querySelector('.progress').textContent='Blok';const feed=document.getElementById('feed');feed.innerHTML='<div class="preview-stage-name">Náhled bloku · '+esc(st.internal_name)+'</div>';const w=document.createElement('div');w.className='reveal shown';const full=st.blocks.find(x=>x.id===onlyBlockId);w.innerHTML=blockHTML(full);feed.appendChild(w);bind(w,full,()=>{const r=w.querySelector('.result');if(r&&!r.textContent)r.textContent='Blok dokončen — náhled.'});document.getElementById('restart').onclick=()=>location.reload();
  }else renderStage();
