@@ -97,6 +97,7 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
           <div class="stage-actions">
             <button id="stageUpBtn" class="secondary" title="Posunout část nahoru">↑</button>
             <button id="stageDownBtn" class="secondary" title="Posunout část dolů">↓</button>
+            <button id="testStageBtn" class="secondary">Otestovat část</button>
             <button id="deleteStageBtn" class="danger">Smazat část</button>
             <button id="saveStageBtn">Uložit část</button>
           </div>
@@ -612,10 +613,11 @@ async function saveBlock(block,tr,card,originalContent){
   if(isReadOnly())return;
   try{await persistBlockEdits(block,tr,card,originalContent);toast('Blok uložen');await openStage(selectedStage)}catch(e){alert('Uložení se nezdařilo: '+errText(e))}
 }
-function previewUrl(blockId=null){
+function previewUrl(blockId=null,stageId=null){
   const u=new URL('./preview.html',location.href);
   u.searchParams.set('version',version.id);
   if(blockId)u.searchParams.set('block',blockId);
+  if(stageId)u.searchParams.set('stage',stageId);
   return u.toString();
 }
 async function testBlock(block,tr,card,originalContent){
@@ -635,6 +637,27 @@ async function deleteBlock(block){if(isReadOnly()||!confirm(`Opravdu smazat blok
 $('addBlockBtn').onclick=()=>{if(isReadOnly())return;$('newBlockType').value='narrator_message';$('newBlockText').value='';$('addBlockDialog').showModal()};
 $('cancelBlockBtn').onclick=()=>$('addBlockDialog').close();
 $('addBlockForm').addEventListener('submit',async e=>{e.preventDefault();if(!selectedStage||isReadOnly())return;try{const position=(currentBlocks.length?Math.max(...currentBlocks.map(b=>b.position||0)):0)+1,type=$('newBlockType').value;let defaultConfig={};if(type==='gps')defaultConfig={latitude:null,longitude:null,radius_m:40,validation:'pending_coordinates'};if(type==='photo')defaultConfig={required:true,store_as_evidence:true,manual_review:false};if(type==='sorting')defaultConfig={items:[],correct_order:[],layout:'list',validation:'pending'};if(type==='logic_grid')defaultConfig={rows:[],columns:[],correct:{}};if(type==='confirm')defaultConfig={button_label:'Pokračovat'};const {data:b,error:e1}=await supabase.from('blocks').insert({stage_id:selectedStage.id,block_type:type,position,config:defaultConfig}).select('id').single();if(e1)throw e1;const {error:e2}=await supabase.from('block_translations').insert({block_id:b.id,locale:game.default_locale||'cs',content:{text:$('newBlockText').value}});if(e2){await supabase.from('blocks').delete().eq('id',b.id);throw e2}$('addBlockDialog').close();toast('Blok přidán');await openStage(selectedStage)}catch(e){alert('Přidání bloku se nezdařilo: '+errText(e))}});
+
+$('testStageBtn').onclick=async()=>{
+  if(!selectedStage||!version)return;
+  const win=window.open('about:blank','_blank');
+  if(!win){alert('Prohlížeč zablokoval nové okno. Povol v Safari vyskakovací okna pro Questplore Admin.');return}
+  try{
+    win.document.write('<title>Questplore — připravuji náhled</title><body style="background:#0e1013;color:#eee;font-family:system-ui;padding:30px">Připravuji náhled části…</body>');
+    if(!isReadOnly()){
+      const patch={internal_name:$('stageName').value.trim(),internal_note:$('stageNote').value};
+      const {error}=await supabase.from('stages').update(patch).eq('id',selectedStage.id);if(error)throw error;
+      selectedStage={...selectedStage,...patch};
+      const cards=[...document.querySelectorAll('#blocks .block')];
+      for(let i=0;i<currentBlocks.length;i++){
+        const block=currentBlocks[i],card=cards[i];if(!card)continue;
+        const tr=contentFor(block),content=tr?.content||{};
+        await persistBlockEdits(block,tr,card,content);
+      }
+    }
+    win.location.href=previewUrl(null,selectedStage.id);
+  }catch(e){win.close();alert('Náhled části se nepodařilo připravit: '+errText(e))}
+};
 
 $('saveStageBtn').onclick=async()=>{if(!selectedStage||isReadOnly())return;const patch={internal_name:$('stageName').value.trim(),internal_note:$('stageNote').value};const {error}=await supabase.from('stages').update(patch).eq('id',selectedStage.id);if(error){alert(errText(error));return}selectedStage={...selectedStage,...patch};toast('Část uložena');await loadVersion()};
 $('addStageBtn').onclick=()=>{if(isReadOnly())return;$('newStageName').value='';$('newStageNote').value='';$('addStageDialog').showModal()};$('cancelStageBtn').onclick=()=>$('addStageDialog').close();
