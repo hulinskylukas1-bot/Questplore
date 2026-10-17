@@ -10,7 +10,7 @@
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 button,input,textarea,select{font:inherit}button{border:0;border-radius:9px;padding:10px 14px;background:var(--accent);color:#111;font-weight:700;cursor:pointer}button.secondary,.icon{background:var(--panel2);color:var(--text);border:1px solid var(--line)}button.danger{background:#3a1c20;color:#ffb7bd;border:1px solid #653039}button:disabled{opacity:.35;cursor:not-allowed}.hidden{display:none!important}
 .center{min-height:100vh;display:grid;place-items:center;padding:24px}.login-card{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px;box-shadow:0 25px 80px #0008}.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--accent);font-weight:800}.login-card h1{font-size:32px;margin:8px 0}.login-card p{color:var(--muted)}
-label{display:block;color:#d6d9df;font-weight:650;margin:14px 0 6px}input,textarea,select{width:100%;background:#111419;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:11px 12px;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--accent)}textarea{resize:vertical}.login-card button{width:100%;margin-top:18px}.error{color:var(--danger);margin-top:12px}
+label{display:block;color:#d6d9df;font-weight:650;margin:14px 0 6px}input,textarea,select{width:100%;background:#111419;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:11px 12px;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--accent)}textarea{resize:vertical}.login-card button{width:100%;margin-top:18px}.login-card .link-btn{background:transparent;border:0;color:var(--accent);padding:6px 0;margin-top:10px;text-align:left;width:auto}.login-card .link-btn:hover{text-decoration:underline}.success{color:#9ad4aa;margin-top:12px}.error{color:var(--danger);margin-top:12px}
 .app{display:grid;grid-template-columns:310px 1fr;grid-template-rows:auto calc(100vh - 98px);grid-template-areas:"header header" "aside main";min-height:100vh}header{grid-area:header;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;padding:12px 18px;background:#12151a;min-height:98px}.header-brand{min-width:150px}.header-game-controls{display:flex;gap:8px;align-items:end;flex:1;flex-wrap:wrap}.compact{margin:0;font-size:11px;color:var(--muted);min-width:190px}.compact select{margin-top:4px;padding:8px 10px}.version-compact{min-width:110px}.header-actions{display:flex;gap:8px;align-items:center}.header-actions span{color:var(--muted);font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis}
 aside{grid-area:aside;border-right:1px solid var(--line);background:#12151a;overflow:auto;padding:18px}.aside-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.aside h2{margin:4px 0;font-size:20px}.small{font-size:11px}.muted{color:var(--muted)}nav{margin-top:18px}.stage-link{display:flex;gap:10px;width:100%;text-align:left;background:transparent;color:var(--text);font-weight:600;padding:11px 10px;margin:3px 0}.stage-link:hover,.stage-link.active{background:var(--panel2);color:var(--accent)}.stage-num{color:var(--muted);min-width:24px}.wide{width:100%}.add-stage{margin-top:16px}.published-notice,.tipbox{border:1px solid #5e4a28;background:#282116;color:#e5c98f;border-radius:10px;padding:10px 12px;font-size:12px;margin-top:14px}.tipbox{margin:18px 0 0;border-color:#34404a;background:#141b20;color:#b8c4cc}
 .workspace{grid-area:main;overflow:auto;padding:28px 34px}.empty{color:var(--muted);display:grid;place-items:center;height:65vh}.stage-top{display:flex;justify-content:space-between;gap:20px;align-items:center}.stage-top>div:first-child{flex:1}.title-input{font-size:27px;font-weight:800;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:6px 0}.stage-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.section-title{display:flex;align-items:center;gap:10px;margin:28px 0 12px}.badge{background:var(--panel2);color:var(--muted);border-radius:999px;padding:3px 8px;font-size:12px}.push-right{margin-left:auto}
@@ -40,6 +40,13 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
         <label>Heslo<input id="password" type="password" autocomplete="current-password" required></label>
         <button type="submit">Přihlásit se</button>
       </form>
+      <button type="button" id="forgotPasswordBtn" class="link-btn">Zapomenuté heslo?</button>
+      <form id="passwordResetForm" class="hidden">
+        <label>Nové heslo<input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label>Zopakovat heslo<input id="newPasswordRepeat" type="password" autocomplete="new-password" minlength="8" required></label>
+        <button type="submit">Nastavit nové heslo</button>
+      </form>
+      <div id="loginSuccess" class="success"></div>
       <div id="loginError" class="error"></div>
     </section>
   </main>
@@ -251,12 +258,55 @@ async function showSession(session){
   }
 }
 
+function showPasswordRecovery(){
+  $('loginView').classList.remove('hidden');
+  $('appView').classList.add('hidden');
+  $('loginForm').classList.add('hidden');
+  $('forgotPasswordBtn').classList.add('hidden');
+  $('passwordResetForm').classList.remove('hidden');
+  $('loginError').textContent='';
+  $('loginSuccess').textContent='Zadejte nové heslo pro administrátorský účet.';
+}
+
 $('loginForm').addEventListener('submit',async e=>{
-  e.preventDefault();$('loginError').textContent='';
+  e.preventDefault();$('loginError').textContent='';$('loginSuccess').textContent='';
   const {data,error}=await supabase.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
   if(error){$('loginError').textContent='Přihlášení se nezdařilo: '+error.message;return}
   await showSession(data.session);
 });
+
+$('forgotPasswordBtn').onclick=async()=>{
+  const email=$('email').value.trim();
+  $('loginError').textContent='';$('loginSuccess').textContent='';
+  if(!email){$('loginError').textContent='Nejdřív zadejte e-mail administrátorského účtu.';return}
+  const btn=$('forgotPasswordBtn');btn.disabled=true;btn.textContent='Odesílám…';
+  const redirectTo=location.origin+location.pathname;
+  const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo});
+  btn.disabled=false;btn.textContent='Zapomenuté heslo?';
+  if(error){$('loginError').textContent='Reset se nepodařilo odeslat: '+error.message;return}
+  $('loginSuccess').textContent='Odeslali jsme e-mail pro obnovu hesla. Otevřete odkaz v e-mailu a vraťte se sem.';
+};
+
+$('passwordResetForm').addEventListener('submit',async e=>{
+  e.preventDefault();$('loginError').textContent='';$('loginSuccess').textContent='';
+  const p1=$('newPassword').value,p2=$('newPasswordRepeat').value;
+  if(p1.length<8){$('loginError').textContent='Heslo musí mít alespoň 8 znaků.';return}
+  if(p1!==p2){$('loginError').textContent='Hesla se neshodují.';return}
+  const {error}=await supabase.auth.updateUser({password:p1});
+  if(error){$('loginError').textContent='Heslo se nepodařilo změnit: '+error.message;return}
+  await supabase.auth.signOut();
+  history.replaceState({},document.title,location.pathname);
+  $('passwordResetForm').classList.add('hidden');
+  $('loginForm').classList.remove('hidden');
+  $('forgotPasswordBtn').classList.remove('hidden');
+  $('newPassword').value='';$('newPasswordRepeat').value='';
+  $('loginSuccess').textContent='Heslo bylo změněno. Teď se můžete přihlásit novým heslem.';
+});
+
+supabase.auth.onAuthStateChange((event)=>{
+  if(event==='PASSWORD_RECOVERY')showPasswordRecovery();
+});
+
 $('logoutBtn').onclick=async()=>{await supabase.auth.signOut();location.reload()};
 
 $('accountBtn').onclick=()=>{$('accountMessage').textContent='';$('newEmail').value='';$('accountDialog').showModal()};
@@ -560,8 +610,10 @@ async function moveStage(delta){if(isReadOnly())return;const idx=stages.findInde
 $('stageUpBtn').onclick=()=>moveStage(-1);$('stageDownBtn').onclick=()=>moveStage(1);
 $('deleteStageBtn').onclick=async()=>{if(!selectedStage||isReadOnly()||!confirm(`Opravdu smazat část „${selectedStage.internal_name}“ včetně všech jejích bloků?`))return;try{const blockIds=currentBlocks.map(b=>b.id);if(blockIds.length){const {error:e1}=await supabase.from('block_translations').delete().in('block_id',blockIds);if(e1)throw e1;const {error:e2}=await supabase.from('blocks').delete().eq('stage_id',selectedStage.id);if(e2)throw e2}const {error:e3}=await supabase.from('transitions').delete().or(`from_stage_id.eq.${selectedStage.id},to_stage_id.eq.${selectedStage.id}`);if(e3)throw e3;const {error:e4}=await supabase.from('stages').delete().eq('id',selectedStage.id);if(e4)throw e4;const remaining=stages.filter(s=>s.id!==selectedStage.id);if(remaining.length)await persistOrder('stages',remaining);selectedStage=null;toast('Část smazána');await loadVersion()}catch(e){alert('Smazání části se nezdařilo: '+errText(e))}};
 
+const recoveryInUrl=location.hash.includes('type=recovery')||new URLSearchParams(location.search).get('type')==='recovery';
 const {data:{session}}=await supabase.auth.getSession();
-await showSession(session);
+if(recoveryInUrl)showPasswordRecovery();
+else await showSession(session);
 
 </script>
 </body>
