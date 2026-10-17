@@ -31,7 +31,7 @@ async function rpc(name,params={}){
 const root=document.getElementById('app');
 let data, stageIndex=0, cursor=0, visible=[], waiting=false, session=null, syncTimer=null, applyingRemote=false;
 const state={lastChoice:null,choices:{},solved:{},responses:{},quizAnswers:{},progressStep:0,seenBlockIds:[],visitedStageIds:[]};
-const DEVICE_KEY='questplore_device_token', SESSION_KEY='questplore_session', LEGACY_DEVICE_KEY='ha_device_token', LEGACY_SESSION_KEY='ha_spiknuti_session';
+const DEVICE_KEY='ha_device_token', SESSION_KEY='ha_spiknuti_session';
 function uuid(){
  if(globalThis.crypto&&crypto.randomUUID)return crypto.randomUUID();
  const b=new Uint8Array(16);(globalThis.crypto||window.crypto).getRandomValues(b);
@@ -39,7 +39,7 @@ function uuid(){
  const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
  return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
 }
-let deviceToken=localStorage.getItem(DEVICE_KEY)||localStorage.getItem(LEGACY_DEVICE_KEY); if(!deviceToken){deviceToken=uuid()} localStorage.setItem(DEVICE_KEY,deviceToken);\nif(!localStorage.getItem(SESSION_KEY)&&localStorage.getItem(LEGACY_SESSION_KEY))localStorage.setItem(SESSION_KEY,localStorage.getItem(LEGACY_SESSION_KEY));
+let deviceToken=localStorage.getItem(DEVICE_KEY); if(!deviceToken){deviceToken=uuid();localStorage.setItem(DEVICE_KEY,deviceToken)}
 function distance(a,b){a=norm(a);b=norm(b);const m=a.length,n=b.length,d=Array.from({length:m+1},()=>Array(n+1).fill(0));for(let i=0;i<=m;i++)d[i][0]=i;for(let j=0;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
 function fuzzy(a,b){const x=norm(a),y=norm(b);if(x===y)return true;if(/^\d+$/.test(x)||/^\d+$/.test(y))return false;if(Math.min(x.length,y.length)<4)return false;const lim=Math.max(x.length,y.length)>=9?2:1;return distance(x,y)<=lim}
 function phraseMatch(answer,value){
@@ -62,7 +62,7 @@ function rememberResponse(b,eventType,eventData){
  else if(eventType==='quiz_complete')state.responses[b.id]={kind:'quiz',value:eventData.answers||[]};
  else if(eventType==='gps_confirmed')state.responses[b.id]={kind:'gps',value:eventData};
  else if(eventType==='photo_uploaded')state.responses[b.id]={kind:'photo',value:eventData};
- else if(eventType==='sorting_complete'||eventType==='sorting_draft_complete')state.responses[b.id]={kind:'sorting',value:eventData.order||[]};\n else if(eventType==='logic_grid_complete')state.responses[b.id]={kind:'logic_grid',value:eventData.values||{}};
+ else if(eventType==='sorting_complete'||eventType==='sorting_draft_complete')state.responses[b.id]={kind:'sorting',value:eventData.order||[]};
  else if(eventType==='confirm')state.responses[b.id]={kind:'confirm',value:true};
 }
 async function persistProgress(
@@ -139,7 +139,7 @@ const esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'
 const norm=s=>(s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const cleanText=v=>(v??'').toString().replace(/\\n/g,'\n');
 const main=c=>cleanText(c?.text??c?.prompt??'');
-const interactive=t=>['text_answer','multi_term_answer','choice','quiz','sorting','logic_grid','gps','gps_confirmation','photo','confirm'].includes(t);
+const interactive=t=>['text_answer','multi_term_answer','choice','quiz','sorting','gps','gps_confirmation','photo','confirm'].includes(t);
 async function getEvidenceSignedUrl(evidenceId){
  if(!session?.session_token)throw new Error('Session není aktivní.');
  const res=await fetch(`${SUPABASE_URL}/functions/v1/get-game-evidence-url`,{
