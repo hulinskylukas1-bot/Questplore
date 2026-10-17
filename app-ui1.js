@@ -287,6 +287,7 @@ function bindBlock(w,b){
      resultBox.textContent=cfg.success_text||'Správně.';
      w.querySelectorAll('.logicSelect').forEach(x=>x.disabled=true);
      logicCheck.disabled=true;w.classList.add('solved');
+     state.responses[b.id]={kind:'logic_grid',value:values};
      const saved=await persistProgress(b,'logic_grid_complete',{values});
      if(saved.accepted!==false)unlock();
    };
