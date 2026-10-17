@@ -125,7 +125,7 @@ function renderFullHistory(targetCursor){
      appendBlock(b);
      stageIndex=savedStage;
      const last=document.querySelector('#feed .reveal:last-child');
-     if(interactive(b.block_type)){
+     if(interactive(b.block_type)||b.block_type==='logic_grid'){
        if(state.solved?.[b.id])markSolvedUI(last,b);
        else last?.querySelectorAll('button,input').forEach(x=>x.disabled=true);
      }
@@ -144,7 +144,7 @@ function revealUntilStop(){
      if(required && norm(required)!==norm(state.lastChoice)){ cursor++; continue; }
    }
    appendBlock(b); visible.push(b.id);
-   if(interactive(b.block_type)){waiting=true;return}
+   if(interactive(b.block_type)||b.block_type==='logic_grid'){waiting=true;return}
    cursor++;
  }
  document.getElementById('continueBar').classList.remove('hidden');
