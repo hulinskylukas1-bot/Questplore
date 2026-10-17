@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0e1013">
+  <title>Questplore — Admin v1.0</title>
+  <style>
+*{box-sizing:border-box}:root{--bg:#0e1013;--panel:#171a1f;--panel2:#20242b;--line:#303640;--text:#f3f4f6;--muted:#9ca3af;--accent:#e0b45c;--danger:#ef6b73;--ok:#83d59b}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea,select{font:inherit}button{border:0;border-radius:9px;padding:10px 14px;background:var(--accent);color:#111;font-weight:700;cursor:pointer}button.secondary,.icon{background:var(--panel2);color:var(--text);border:1px solid var(--line)}button.danger{background:#3a1c20;color:#ffb7bd;border:1px solid #653039}button:disabled{opacity:.35;cursor:not-allowed}.hidden{display:none!important}
+.center{min-height:100vh;display:grid;place-items:center;padding:24px}.login-card{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px;box-shadow:0 25px 80px #0008}.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--accent);font-weight:800}.login-card h1{font-size:32px;margin:8px 0}.login-card p{color:var(--muted)}
+label{display:block;color:#d6d9df;font-weight:650;margin:14px 0 6px}input,textarea,select{width:100%;background:#111419;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:11px 12px;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--accent)}textarea{resize:vertical}.login-card button{width:100%;margin-top:18px}.error{color:var(--danger);margin-top:12px}
+.app{display:grid;grid-template-columns:310px 1fr;grid-template-rows:auto calc(100vh - 98px);grid-template-areas:"header header" "aside main";min-height:100vh}header{grid-area:header;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;padding:12px 18px;background:#12151a;min-height:98px}.header-brand{min-width:150px}.header-game-controls{display:flex;gap:8px;align-items:end;flex:1;flex-wrap:wrap}.compact{margin:0;font-size:11px;color:var(--muted);min-width:190px}.compact select{margin-top:4px;padding:8px 10px}.version-compact{min-width:110px}.header-actions{display:flex;gap:8px;align-items:center}.header-actions span{color:var(--muted);font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis}
+aside{grid-area:aside;border-right:1px solid var(--line);background:#12151a;overflow:auto;padding:18px}.aside-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.aside h2{margin:4px 0;font-size:20px}.small{font-size:11px}.muted{color:var(--muted)}nav{margin-top:18px}.stage-link{display:flex;gap:10px;width:100%;text-align:left;background:transparent;color:var(--text);font-weight:600;padding:11px 10px;margin:3px 0}.stage-link:hover,.stage-link.active{background:var(--panel2);color:var(--accent)}.stage-num{color:var(--muted);min-width:24px}.wide{width:100%}.add-stage{margin-top:16px}.published-notice,.tipbox{border:1px solid #5e4a28;background:#282116;color:#e5c98f;border-radius:10px;padding:10px 12px;font-size:12px;margin-top:14px}.tipbox{margin:18px 0 0;border-color:#34404a;background:#141b20;color:#b8c4cc}
+.workspace{grid-area:main;overflow:auto;padding:28px 34px}.empty{color:var(--muted);display:grid;place-items:center;height:65vh}.stage-top{display:flex;justify-content:space-between;gap:20px;align-items:center}.stage-top>div:first-child{flex:1}.title-input{font-size:27px;font-weight:800;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:6px 0}.stage-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.section-title{display:flex;align-items:center;gap:10px;margin:28px 0 12px}.badge{background:var(--panel2);color:var(--muted);border-radius:999px;padding:3px 8px;font-size:12px}.push-right{margin-left:auto}
+.block{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden}.block-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#191d23}.block-type{display:flex;align-items:center;gap:9px;font-weight:800}.pos{color:var(--muted);font-size:12px}.block-head-actions{display:flex;align-items:center;gap:6px}.block-head-actions button{padding:6px 9px;min-width:34px}.block-body{padding:14px}.block-actions{display:flex;justify-content:flex-end;gap:8px;align-items:center;margin-top:12px}.block-actions .danger{margin-right:auto}.json{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;min-height:90px}.content-text{min-height:110px}
+.smart-fields{display:grid;gap:14px}.smart-grid,.form-grid{display:grid;grid-template-columns:2fr 1fr;gap:12px}.smart-grid.three,.form-grid.three{grid-template-columns:repeat(3,1fr)}.form-grid.two{grid-template-columns:1fr 1fr}.hint{font-size:12px;opacity:.6;font-weight:400}.advanced{border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.advanced summary{cursor:pointer;color:#aeb5c2;margin-bottom:12px}.check{display:flex!important;align-items:center;gap:10px}.check input{width:auto}.smart-fields input,.smart-fields select{width:100%}.smart-hints{min-height:90px}.smart-items,.smart-correct-order,.smart-grid-correct{min-height:150px}.sorting-grid{grid-template-columns:1fr 1fr}
+.gps-state,.sorting-state,.logic-state{border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.45}.ready{background:#15231a!important;border-color:#315a3b!important;color:#b9e2c1!important}.pending{background:#282116!important;border-color:#5e4a28!important;color:#e5c98f!important}.photo-settings{display:grid;gap:6px;padding:4px 0}.asset-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}.asset-status{font-size:12px;color:var(--muted);margin-top:4px}.asset-preview img{max-width:260px;max-height:180px;object-fit:contain;border:1px solid var(--line);border-radius:8px;margin-top:8px;background:#0c0e11}.logic-help{font-size:12px;color:var(--muted);margin-top:-6px}.logic-columns{min-height:120px}
+.transition-title{margin-top:26px}#transitionsEditor{display:grid;gap:12px;margin-bottom:24px}.transition-card{border:1px solid #343d38;background:#111513;border-radius:14px;padding:14px}.transition-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.transition-condition{margin-top:12px;padding-top:12px;border-top:1px solid #2b332f}.transition-actions{display:flex;justify-content:flex-end;margin-top:12px}.transition-empty{border:1px dashed #465049;border-radius:12px;padding:16px;color:#aeb6ad;background:#101411}.transition-card select,.transition-card input{width:100%}
+#toast{position:fixed;right:20px;bottom:20px;z-index:50;background:#edf8ef;color:#183c20;padding:11px 15px;border-radius:9px;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none}#toast.show{opacity:1;transform:none}
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text);padding:0;width:min(560px,calc(100% - 32px));box-shadow:0 30px 100px #000b}dialog::backdrop{background:#000a}.dialog-card{padding:26px}.dialog-card h2{margin:7px 0 8px}.game-dialog{width:100%}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.account-message{margin-top:12px;color:var(--accent);white-space:pre-line}
+@media(max-width:1150px){header{align-items:flex-start}.header-actions span{display:none}.app{grid-template-rows:auto calc(100vh - 140px)}.header-game-controls{gap:6px}.compact{min-width:150px}}
+@media(max-width:850px){.app{grid-template-columns:1fr;grid-template-rows:auto auto auto;grid-template-areas:"header" "aside" "main"}header{flex-direction:column;align-items:stretch}.header-game-controls{align-items:stretch}.header-actions{justify-content:flex-end}aside{border-right:0;border-bottom:1px solid var(--line);max-height:360px}.workspace{padding:20px}.stage-top{align-items:flex-start;flex-direction:column}.stage-actions{width:100%}.smart-grid,.smart-grid.three,.form-grid.two,.form-grid.three,.sorting-grid{grid-template-columns:1fr}.asset-row{grid-template-columns:1fr}.compact{min-width:0;flex:1}.version-compact{min-width:0}}
+
+.button-link{display:inline-flex;align-items:center;text-decoration:none;border-radius:9px;padding:10px 14px;background:var(--accent);color:#111;font-weight:700}
+
+</style>
+</head>
+<body>
+  <div id="toast"></div>
+
+  <main id="loginView" class="center">
+    <section class="login-card">
+      <div class="eyebrow">QUESTPLORE</div>
+      <h1>Admin v1.0</h1>
+      <p>Přihlášení do editoru her.</p>
+      <form id="loginForm">
+        <label>E-mail<input id="email" type="email" autocomplete="username" required></label>
+        <label>Heslo<input id="password" type="password" autocomplete="current-password" required></label>
+        <button type="submit">Přihlásit se</button>
+      </form>
+      <div id="loginError" class="error"></div>
+    </section>
+  </main>
+
+  <div id="appView" class="app hidden">
+    <header>
+      <div class="header-brand"><div class="eyebrow">QUESTPLORE</div><strong>Editor her · v1.0</strong></div>
+      <div class="header-game-controls">
+        <label class="compact">Hra<select id="gameSelect"></select></label>
+        <button id="newGameBtn" class="secondary">+ Nová hra</button>
+        <button id="editGameBtn" class="secondary">Nastavení hry</button>
+        <label class="compact version-compact">Verze<select id="versionSelect"></select></label>
+        <button id="newVersionBtn" class="secondary">+ Nová verze</button>
+        <button id="publishBtn">Publikovat verzi</button>
+        <button id="testCodeBtn" class="secondary">Testovací kód</button>
+      </div>
+      <div class="header-actions">
+        <span id="userEmail"></span>
+        <button id="accountBtn" class="secondary">Účet</button>
+        <button id="logoutBtn" class="secondary">Odhlásit</button>
+      </div>
+    </header>
+
+    <aside>
+      <div class="aside-head">
+        <div>
+          <div class="muted small">HRA</div>
+          <h2 id="gameTitle">Načítám…</h2>
+          <div id="versionInfo" class="muted small"></div>
+        </div>
+        <button id="reloadBtn" class="icon" title="Načíst znovu">↻</button>
+      </div>
+      <div id="publishedNotice" class="published-notice hidden">Tato verze je publikovaná a v editoru je pouze pro čtení. Pro změny vytvoř novou verzi.</div>
+      <button id="addStageBtn" class="wide secondary add-stage">+ Přidat část</button>
+      <nav id="stageList"></nav>
+    </aside>
+
+    <section class="workspace">
+      <div id="noGameState" class="empty hidden">Založ první hru pomocí tlačítka „+ Nová hra“.</div>
+      <div id="emptyState" class="empty">Vyber část hry vlevo.</div>
+      <div id="stageEditor" class="hidden">
+        <div class="stage-top">
+          <div>
+            <div class="muted small">ČÁST HRY</div>
+            <input id="stageName" class="title-input">
+          </div>
+          <div class="stage-actions">
+            <button id="stageUpBtn" class="secondary" title="Posunout část nahoru">↑</button>
+            <button id="stageDownBtn" class="secondary" title="Posunout část dolů">↓</button>
+            <button id="deleteStageBtn" class="danger">Smazat část</button>
+            <button id="saveStageBtn">Uložit část</button>
+          </div>
+        </div>
+        <label>Interní poznámka<textarea id="stageNote" rows="3"></textarea></label>
+        <div class="tipbox"><strong>GPS odemčení stanoviště:</strong> vlož jako první blok „GPS ověření polohy“. Další obsah se hráči ukáže až po úspěšném ověření.</div>
+        <div class="section-title transition-title">
+          <h3>Přechody a větvení</h3><span id="transitionCount" class="badge"></span>
+          <button id="addTransitionBtn" class="secondary push-right">+ Přidat přechod</button>
+        </div>
+        <div id="transitionsEditor"></div>
+        <div class="section-title">
+          <h3>Bloky</h3><span id="blockCount" class="badge"></span>
+          <button id="addBlockBtn" class="secondary push-right">+ Přidat blok</button>
+        </div>
+        <div id="blocks"></div>
+      </div>
+    </section>
+  </div>
+
+  <dialog id="accountDialog">
+    <form method="dialog" class="dialog-card" id="accountForm">
+      <div class="eyebrow">ADMIN ÚČET</div>
+      <h2>Změna přihlašovacího e-mailu</h2>
+      <p class="muted">Supabase může podle nastavení projektu vyžadovat potvrzení změny e-mailem.</p>
+      <label>Nový e-mail<input id="newEmail" type="email" required></label>
+      <div id="accountMessage" class="account-message"></div>
+      <div class="dialog-actions">
+        <button type="button" id="cancelAccountBtn" class="secondary">Zrušit</button>
+        <button type="submit">Změnit e-mail</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="gameDialog">
+    <form class="dialog-card game-dialog" id="gameForm">
+      <div class="eyebrow" id="gameDialogEyebrow">NOVÁ HRA</div>
+      <h2 id="gameDialogTitle">Založit hru</h2>
+      <div class="form-grid two">
+        <label>Interní název<input id="gameNameInput" required placeholder="Např. Lazaret 1757: Poslední kurýr"></label>
+        <label>Slug<input id="gameSlugInput" required placeholder="lazaret-1757"></label>
+      </div>
+      <label>Hráčský název<input id="gamePublicTitleInput" required></label>
+      <label>Krátký popis<textarea id="gameDescriptionInput" rows="3"></textarea></label>
+      <div class="form-grid three">
+        <label>Město<input id="gameCityInput" placeholder="Praha"></label>
+        <label>Min. hráčů<input id="gameMinPlayersInput" type="number" min="1"></label>
+        <label>Max. hráčů<input id="gameMaxPlayersInput" type="number" min="1"></label>
+      </div>
+      <div class="form-grid three">
+        <label>Max. zařízení<input id="gameMaxDevicesInput" type="number" min="1" max="10" value="3"></label>
+        <label>Délka od (min)<input id="gameDurationMinInput" type="number" min="0"></label>
+        <label>Délka do (min)<input id="gameDurationMaxInput" type="number" min="0"></label>
+      </div>
+      <div id="gameFormMessage" class="account-message"></div>
+      <div class="dialog-actions">
+        <button type="button" id="cancelGameBtn" class="secondary">Zrušit</button>
+        <button type="submit" id="saveGameBtn">Uložit</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="testCodeDialog">
+    <div class="dialog-card">
+      <div class="eyebrow">TEST HRY</div>
+      <h2>Testovací kód</h2>
+      <p class="muted">Kód otevře aktuální publikovanou verzi hry v Playeru.</p>
+      <input id="testCodeOutput" readonly>
+      <div class="dialog-actions">
+        <button type="button" id="closeTestCodeBtn" class="secondary">Zavřít</button>
+        <button type="button" id="copyTestCodeBtn" class="secondary">Kopírovat kód</button>
+        <a id="openPlayerBtn" class="button-link" href="https://hulinskylukas1-bot.github.io/Questplore/" target="_blank" rel="noopener">Otevřít Player</a>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="addStageDialog">
+    <form class="dialog-card" id="addStageForm">
+      <div class="eyebrow">NOVÁ ČÁST</div>
+      <h2>Přidat část hry</h2>
+      <label>Interní název<input id="newStageName" required placeholder="Např. Vila Kajetánka a rybník"></label>
+      <label>Interní poznámka<textarea id="newStageNote" rows="3"></textarea></label>
+      <div class="dialog-actions">
+        <button type="button" id="cancelStageBtn" class="secondary">Zrušit</button>
+        <button type="submit">Přidat část</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="addBlockDialog">
+    <form class="dialog-card" id="addBlockForm">
+      <div class="eyebrow">NOVÝ BLOK</div>
+      <h2>Přidat blok</h2>
+      <label>Typ bloku
+        <select id="newBlockType">
+          <option value="narrator_message">Zpráva vypravěče</option>
+          <option value="instruction">Instrukce / přesun</option>
+          <option value="text_answer">Textová odpověď</option>
+          <option value="multi_term_answer">Víceslovná odpověď</option>
+          <option value="choice">Volba</option>
+          <option value="quiz">Kvíz</option>
+          <option value="sorting">Řazení / přesouvání karet</option>
+          <option value="logic_grid">Logická tabulka</option>
+          <option value="gps">GPS ověření polohy</option>
+          <option value="photo">Fotografie</option>
+          <option value="confirm">Tlačítko / potvrzení</option>
+          <option value="image">Obrázek</option>
+          <option value="document">Dokument / důkaz</option>
+          <option value="delay">Čekání / prodleva</option>
+          <option value="system_action">Systémová akce</option>
+          <option value="condition">Podmínka / větev</option>
+        </select>
+      </label>
+      <label>Text / hlavní obsah<textarea id="newBlockText" rows="5"></textarea></label>
+      <div class="dialog-actions">
+        <button type="button" id="cancelBlockBtn" class="secondary">Zrušit</button>
+        <button type="submit">Přidat blok</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://hnhyscllpnyzbxhrffph.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_w0N986iN3rTUBQjDLogNhQ_BXcmNRWH';
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const $ = id => document.getElementById(id);
+
+let games=[], game=null, versions=[], version=null, gameTranslation=null;
+let stages=[], selectedStage=null, currentBlocks=[], transitions=[], allChoiceBlocks=[];
+let gameDialogMode='create';
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function errText(e){return e?.message||String(e)}
+function esc(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function arr(v){return Array.isArray(v)?v:[]}
+function lines(v){return (v||'').split('\n').map(x=>x.trim()).filter(Boolean)}
+function tempPositions(items){return items.map((_,i)=>10000+i)}
+function isReadOnly(){return version?.status==='published'}
+function slugify(v=''){return v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)}
+function numOrNull(v){const s=String(v??'').trim();if(!s)return null;const n=Number(s);return Number.isFinite(n)?n:null}
+
+async function ensureAdmin(){
+  const {data,error}=await supabase.from('admin_users').select('user_id').limit(1);
+  if(error||!data?.length)throw new Error('Účet nemá oprávnění administrátora.');
+}
+
+async function showSession(session){
+  if(!session){$('loginView').classList.remove('hidden');$('appView').classList.add('hidden');return}
+  try{
+    await ensureAdmin();
+    $('userEmail').textContent=session.user.email||'';
+    $('loginView').classList.add('hidden');$('appView').classList.remove('hidden');
+    await loadGames();
+  }catch(e){
+    await supabase.auth.signOut();
+    $('loginError').textContent=errText(e);
+    $('loginView').classList.remove('hidden');$('appView').classList.add('hidden');
+  }
+}
+
+$('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();$('loginError').textContent='';
+  const {data,error}=await supabase.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+  if(error){$('loginError').textContent='Přihlášení se nezdařilo: '+error.message;return}
+  await showSession(data.session);
+});
+$('logoutBtn').onclick=async()=>{await supabase.auth.signOut();location.reload()};
+
+$('accountBtn').onclick=()=>{$('accountMessage').textContent='';$('newEmail').value='';$('accountDialog').showModal()};
+$('cancelAccountBtn').onclick=()=>$('accountDialog').close();
+$('accountForm').addEventListener('submit',async e=>{
+  e.preventDefault();const newEmail=$('newEmail').value.trim();$('accountMessage').textContent='Ukládám…';
+  const {data,error}=await supabase.auth.updateUser({email:newEmail});
+  if(error){$('accountMessage').textContent='Změna se nezdařila: '+error.message;return}
+  const effective=data?.user?.email||'';
+  if(effective.toLowerCase()===newEmail.toLowerCase()){$('userEmail').textContent=effective;$('accountMessage').textContent='E-mail byl změněn na '+effective+'.'}
+  else $('accountMessage').textContent='Žádost o změnu byla odeslána. Dokonči potvrzení podle nastavení Supabase.';
+});
+
+async function loadGames(preferredGameId=null,preferredVersionId=null){
+  const {data,error}=await supabase.from('games').select('*').order('created_at');
+  if(error)throw error;games=data||[];
+  const sel=$('gameSelect');sel.innerHTML='';
+  games.forEach(g=>{const o=document.createElement('option');o.value=g.id;o.textContent=g.name;sel.appendChild(o)});
+  if(!games.length){
+    game=null;version=null;stages=[];selectedStage=null;
+    $('noGameState').classList.remove('hidden');$('emptyState').classList.add('hidden');$('stageEditor').classList.add('hidden');
+    $('gameTitle').textContent='Žádná hra';$('versionInfo').textContent='';$('addStageBtn').disabled=true;$('editGameBtn').disabled=true;$('newVersionBtn').disabled=true;$('publishBtn').disabled=true;
+    return;
+  }
+  $('noGameState').classList.add('hidden');
+  const remembered=localStorage.getItem('questplore_admin_game');
+  const target=preferredGameId||remembered||games[0].id;
+  const chosen=games.find(g=>g.id===target)||games[0];sel.value=chosen.id;
+  await selectGame(chosen.id,preferredVersionId);
+}
+
+async function selectGame(gameId,preferredVersionId=null){
+  game=games.find(g=>g.id===gameId)||null;if(!game)return;
+  localStorage.setItem('questplore_admin_game',game.id);
+  selectedStage=null;
+  const {data,error}=await supabase.from('game_versions').select('*').eq('game_id',game.id).order('version_number',{ascending:false});
+  if(error)throw error;versions=data||[];
+  const vs=$('versionSelect');vs.innerHTML='';
+  versions.forEach(v=>{const o=document.createElement('option');o.value=v.id;o.textContent=`v${v.version_number} · ${v.status}`;vs.appendChild(o)});
+  const remembered=localStorage.getItem(`questplore_admin_version_${game.id}`);
+  const target=preferredVersionId||remembered||versions[0]?.id;
+  version=versions.find(v=>v.id===target)||versions[0]||null;
+  if(!version)throw new Error('Hra nemá žádnou verzi.');
+  vs.value=version.id;localStorage.setItem(`questplore_admin_version_${game.id}`,version.id);
+  await loadVersion();
+}
+
+async function loadVersion(){
+  if(!game||!version)return;
+  const locale=game.default_locale||'cs';
+  const [{data:tr,error:tre},{data:s,error:se},{data:t,error:te}]=await Promise.all([
+    supabase.from('game_translations').select('*').eq('game_version_id',version.id).eq('locale',locale).maybeSingle(),
+    supabase.from('stages').select('*').eq('game_version_id',version.id).order('position'),
+    supabase.from('transitions').select('*').eq('game_version_id',version.id).order('priority',{ascending:false})
+  ]);
+  if(tre)throw tre;if(se)throw se;if(te)throw te;
+  gameTranslation=tr||null;stages=s||[];transitions=t||[];
+  const ids=stages.map(x=>x.id);
+  if(ids.length){
+    const {data:choices,error}=await supabase.from('blocks').select('id,stage_id,block_type,position,config,block_translations(locale,content)').in('stage_id',ids).eq('block_type','choice').order('position');
+    if(error)throw error;allChoiceBlocks=choices||[];
+  }else allChoiceBlocks=[];
+  $('gameTitle').textContent=gameTranslation?.title||game.name;
+  const duration=game.estimated_duration_min||game.estimated_duration_max?` · ${game.estimated_duration_min??'?'}–${game.estimated_duration_max??'?'} min`:'';
+  $('versionInfo').textContent=`verze ${version.version_number} · ${version.status} · ${stages.length} částí${duration}`;
+  $('publishedNotice').classList.toggle('hidden',!isReadOnly());
+  $('addStageBtn').disabled=isReadOnly();$('publishBtn').disabled=isReadOnly();$('editGameBtn').disabled=isReadOnly();$('newVersionBtn').disabled=false;$('testCodeBtn').disabled=!versions.some(v=>v.status==='published');
+  $('publishBtn').textContent=isReadOnly()?'Publikováno':'Publikovat verzi';
+  if(selectedStage)selectedStage=stages.find(x=>x.id===selectedStage.id)||null;
+  renderStages();
+  if(selectedStage)await openStage(selectedStage);
+  else{$('emptyState').classList.remove('hidden');$('stageEditor').classList.add('hidden')}
+}
+
+$('gameSelect').onchange=()=>selectGame($('gameSelect').value).catch(e=>alert(errText(e)));
+$('versionSelect').onchange=async()=>{version=versions.find(v=>v.id===$('versionSelect').value)||version;localStorage.setItem(`questplore_admin_version_${game.id}`,version.id);selectedStage=null;await loadVersion()};
+$('reloadBtn').onclick=()=>loadGames(game?.id,version?.id).catch(e=>alert(errText(e)));
+
+function openGameDialog(mode){
+  gameDialogMode=mode;$('gameFormMessage').textContent='';
+  if(mode==='create'){
+    delete $('gameSlugInput').dataset.touched;delete $('gamePublicTitleInput').dataset.touched;
+    $('gameDialogEyebrow').textContent='NOVÁ HRA';$('gameDialogTitle').textContent='Založit hru';$('saveGameBtn').textContent='Založit hru';
+    for(const id of ['gameNameInput','gameSlugInput','gamePublicTitleInput','gameDescriptionInput','gameCityInput','gameMinPlayersInput','gameMaxPlayersInput','gameDurationMinInput','gameDurationMaxInput'])$(id).value='';
+    $('gameMaxDevicesInput').value='3';$('gameSlugInput').disabled=false;
+  }else{
+    $('gameDialogEyebrow').textContent='NASTAVENÍ HRY';$('gameDialogTitle').textContent=game.name;$('saveGameBtn').textContent='Uložit změny';
+    $('gameNameInput').value=game.name||'';$('gameSlugInput').value=game.slug||'';$('gameSlugInput').disabled=true;
+    $('gamePublicTitleInput').value=gameTranslation?.title||game.name||'';$('gameDescriptionInput').value=gameTranslation?.description||'';$('gameCityInput').value=game.city||'';
+    $('gameMinPlayersInput').value=game.min_players??'';$('gameMaxPlayersInput').value=game.max_players??'';$('gameMaxDevicesInput').value=game.max_devices??1;
+    $('gameDurationMinInput').value=game.estimated_duration_min??'';$('gameDurationMaxInput').value=game.estimated_duration_max??'';
+  }
+  $('gameDialog').showModal();
+}
+$('newGameBtn').onclick=()=>openGameDialog('create');
+$('editGameBtn').onclick=()=>{if(!game||isReadOnly())return;openGameDialog('edit')};
+$('cancelGameBtn').onclick=()=>$('gameDialog').close();
+$('gameNameInput').addEventListener('input',()=>{
+  if(gameDialogMode!=='create')return;
+  if(!$('gameSlugInput').dataset.touched)$('gameSlugInput').value=slugify($('gameNameInput').value);
+  if(!$('gamePublicTitleInput').dataset.touched)$('gamePublicTitleInput').value=$('gameNameInput').value;
+});
+$('gameSlugInput').addEventListener('input',()=>{$('gameSlugInput').dataset.touched='1'});
+$('gamePublicTitleInput').addEventListener('input',()=>{$('gamePublicTitleInput').dataset.touched='1'});
+$('gameForm').addEventListener('submit',async e=>{
+  e.preventDefault();$('gameFormMessage').textContent='Ukládám…';
+  try{
+    const name=$('gameNameInput').value.trim(),slug=slugify($('gameSlugInput').value),title=$('gamePublicTitleInput').value.trim();
+    const minPlayers=numOrNull($('gameMinPlayersInput').value),maxPlayers=numOrNull($('gameMaxPlayersInput').value),maxDevices=numOrNull($('gameMaxDevicesInput').value)||1,dmin=numOrNull($('gameDurationMinInput').value),dmax=numOrNull($('gameDurationMaxInput').value);
+    if(minPlayers&&maxPlayers&&maxPlayers<minPlayers)throw new Error('Maximální počet hráčů nesmí být menší než minimální.');
+    if(dmin!==null&&dmax!==null&&dmax<dmin)throw new Error('Horní odhad délky nesmí být menší než dolní.');
+    if(gameDialogMode==='create'){
+      const {data,error}=await supabase.rpc('admin_create_game',{p_name:name,p_slug:slug,p_city:$('gameCityInput').value.trim()||null,p_min_players:minPlayers,p_max_players:maxPlayers,p_max_devices:maxDevices,p_duration_min:dmin,p_duration_max:dmax,p_title:title,p_description:$('gameDescriptionInput').value.trim()||null,p_locale:'cs'});
+      if(error)throw error;
+      $('gameDialog').close();toast('Hra založena');await loadGames(data.game_id,data.version_id);
+    }else{
+      const patch={name,city:$('gameCityInput').value.trim()||null,min_players:minPlayers,max_players:maxPlayers,max_devices:maxDevices,estimated_duration_min:dmin,estimated_duration_max:dmax};
+      const {error:e1}=await supabase.from('games').update(patch).eq('id',game.id);if(e1)throw e1;
+      if(gameTranslation){const {error:e2}=await supabase.from('game_translations').update({title,description:$('gameDescriptionInput').value.trim()||null}).eq('id',gameTranslation.id);if(e2)throw e2}
+      else{const {error:e2}=await supabase.from('game_translations').insert({game_version_id:version.id,locale:game.default_locale||'cs',title,description:$('gameDescriptionInput').value.trim()||null});if(e2)throw e2}
+      $('gameDialog').close();toast('Nastavení hry uloženo');await loadGames(game.id,version.id);
+    }
+  }catch(e){$('gameFormMessage').textContent='Uložení se nezdařilo: '+errText(e)}
+});
+
+$('newVersionBtn').onclick=async()=>{
+  if(!game)return;
+  if(!confirm(`Vytvořit novou pracovní verzi hry „${game.name}“ jako kopii poslední verze?`))return;
+  const {data,error}=await supabase.rpc('admin_clone_version',{p_game_id:game.id});
+  if(error){alert('Novou verzi se nepodařilo vytvořit: '+error.message);return}
+  toast(`Vytvořena verze ${data.version_number}`);await loadGames(game.id,data.version_id);
+};
+$('testCodeBtn').onclick=async()=>{
+  if(!game||!versions.some(v=>v.status==='published'))return;
+  const btn=$('testCodeBtn');btn.disabled=true;btn.textContent='Vytvářím…';
+  try{const {data,error}=await supabase.rpc('admin_issue_test_license',{p_game_id:game.id});if(error)throw error;$('testCodeOutput').value=data;$('testCodeDialog').showModal()}catch(e){alert('Testovací kód se nepodařilo vytvořit: '+errText(e))}finally{btn.disabled=false;btn.textContent='Testovací kód'}
+};
+$('closeTestCodeBtn').onclick=()=>$('testCodeDialog').close();
+$('copyTestCodeBtn').onclick=async()=>{try{await navigator.clipboard.writeText($('testCodeOutput').value);toast('Kód zkopírován')}catch{ $('testCodeOutput').select();document.execCommand('copy');toast('Kód zkopírován')}};
+
+$('publishBtn').onclick=async()=>{
+  if(!version||isReadOnly())return;
+  if(!stages.length){alert('Nelze publikovat hru bez částí.');return}
+  if(!confirm(`Publikovat verzi ${version.version_number}? Po publikování bude tato verze v Adminu pouze pro čtení.`))return;
+  const {error}=await supabase.rpc('admin_publish_version',{p_version_id:version.id});
+  if(error){alert('Publikování se nezdařilo: '+error.message);return}
+  toast('Verze publikována');await loadGames(game.id,version.id);
+};
+
+function renderStages(){
+  const host=$('stageList');host.innerHTML='';
+  stages.forEach((s,i)=>{
+    const b=document.createElement('button');b.className='stage-link'+(selectedStage?.id===s.id?' active':'');
+    b.innerHTML=`<span class="stage-num">${String(i+1).padStart(2,'0')}</span><span></span>`;b.querySelector('span:last-child').textContent=s.internal_name;b.onclick=()=>openStage(s);host.appendChild(b);
+  });
+}
+async function openStage(stage){
+  selectedStage=stage;renderStages();$('emptyState').classList.add('hidden');$('stageEditor').classList.remove('hidden');
+  $('stageName').value=stage.internal_name||'';$('stageNote').value=stage.internal_note||'';
+  const idx=stages.findIndex(s=>s.id===stage.id);$('stageUpBtn').disabled=isReadOnly()||idx<=0;$('stageDownBtn').disabled=isReadOnly()||idx<0||idx>=stages.length-1;
+  $('deleteStageBtn').disabled=isReadOnly();$('saveStageBtn').disabled=isReadOnly();$('addTransitionBtn').disabled=isReadOnly();$('addBlockBtn').disabled=isReadOnly();$('stageName').disabled=isReadOnly();$('stageNote').disabled=isReadOnly();
+  const {data:blocks,error}=await supabase.from('blocks').select('id,stage_id,block_type,position,config,block_translations(id,locale,content)').eq('stage_id',stage.id).order('position');
+  if(error){alert(errText(error));return}currentBlocks=blocks||[];$('blockCount').textContent=`${currentBlocks.length} bloků`;renderBlocks(currentBlocks);renderTransitions();
+}
+function contentFor(block){return block.block_translations?.find(t=>t.locale===(game?.default_locale||'cs'))||block.block_translations?.[0]||null}
+
+const BLOCK_LABELS={narrator_message:'Zpráva vypravěče',instruction:'Instrukce / přesun',text_answer:'Textová odpověď',multi_term_answer:'Víceslovná odpověď',choice:'Volba',quiz:'Kvíz',sorting:'Řazení / přesouvání karet',logic_grid:'Logická tabulka',gps:'GPS ověření polohy',gps_confirmation:'GPS potvrzení (starší typ)',confirm:'Tlačítko / potvrzení',conditional_message:'Podmíněná zpráva',draft_placeholder:'Rozpracovaný blok',photo:'Fotografie',image:'Obrázek',document:'Dokument / důkaz',delay:'Čekání / prodleva',system_action:'Systémová akce',condition:'Podmínka / větev'};
+const HINTABLE_TYPES=new Set(['text_answer','multi_term_answer','choice','quiz','sorting','logic_grid','gps','gps_confirmation','photo','confirm']);
+
+function sortingItemsText(items){
+  return arr(items).map((x,i)=>{
+    if(typeof x==='string')return `${x} | ${x}`;
+    return `${x.id??`item-${i+1}`} | ${x.label??x.text??x.id??''}${x.detail?` | ${String(x.detail).replace(/\n/g,' ↵ ')}`:''}`;
+  }).join('\n');
+}
+function sortingCorrectText(correct){return arr(correct).map(x=>typeof x==='string'?x:(x.id??x.value??x.label??'')).join('\n')}
+function parseSortingItems(text){
+  return lines(text).map((line,i)=>{const p=line.split('|').map(x=>x.trim());if(p.length===1)return {id:p[0],label:p[0]};return {id:p[0]||`item-${i+1}`,label:p[1]||p[0],...(p[2]?{detail:p.slice(2).join('|').trim().replace(/ ↵ /g,'\n')}: {})}})
+}
+function quizQuestionsText(qs){return arr(qs).map(q=>`${q.question||''} | ${arr(q.options).join(' ; ')} | ${Number(q.correct_index??0)+1}`).join('\n')}
+function parseQuizQuestions(text){
+  return lines(text).map(line=>{const p=line.split('|').map(x=>x.trim());if(p.length<3)throw new Error('Každá kvízová otázka musí mít formát: otázka | možnost A ; možnost B | číslo správné možnosti.');const opts=p[1].split(';').map(x=>x.trim()).filter(Boolean);const idx=Number(p[2])-1;if(!Number.isInteger(idx)||idx<0||idx>=opts.length)throw new Error(`Neplatný index správné odpovědi u otázky „${p[0]}“.`);return {question:p[0],options:opts,correct_index:idx}})
+}
+function logicColumnsText(cols){return arr(cols).map(c=>`${c.key||''} | ${c.label||c.key||''} | ${arr(c.options).join(' ; ')}`).join('\n')}
+function logicCorrectText(correct={}){return Object.entries(correct||{}).map(([row,vals])=>`${row} | ${Object.entries(vals||{}).map(([k,v])=>`${k}=${v}`).join(' | ')}`).join('\n')}
+function parseLogicColumns(text){
+  return lines(text).map(line=>{const p=line.split('|').map(x=>x.trim());if(p.length<3)throw new Error('Sloupce tabulky musí mít formát: klíč | název | možnost1 ; možnost2.');const options=p.slice(2).join('|').split(';').map(x=>x.trim()).filter(Boolean);if(!p[0]||!p[1]||!options.length)throw new Error('Každý sloupec potřebuje klíč, název a alespoň jednu možnost.');return {key:p[0],label:p[1],options}})
+}
+function parseLogicCorrect(text,rows,cols){
+  const out={};const rowSet=new Set(rows),colMap=new Map(cols.map(c=>[c.key,c]));
+  for(const line of lines(text)){
+    const p=line.split('|').map(x=>x.trim());const row=p.shift();if(!rowSet.has(row))throw new Error(`Řádek „${row}“ není v seznamu řádků.`);out[row]={};
+    for(const kv of p){const i=kv.indexOf('=');if(i<1)throw new Error(`Použij zápis klíč=hodnota v řádku „${row}“.`);const k=kv.slice(0,i).trim(),v=kv.slice(i+1).trim(),col=colMap.get(k);if(!col)throw new Error(`Sloupec „${k}“ není definovaný.`);if(!col.options.includes(v))throw new Error(`Hodnota „${v}“ není možností sloupce „${k}“.`);out[row][k]=v}
+  }
+  return out;
+}
+
+function smartFields(block,content){
+  const c=block.config||{},t=block.block_type,main=content.text??content.prompt??'';
+  let html=`<label>Text / hlavní obsah<textarea class="smart-main">${esc(main)}</textarea></label>`;
+  if(t==='text_answer'||t==='multi_term_answer'){
+    const answers=arr(c.answers?.length?c.answers:c.accepted_answers);
+    html+=`<div class="smart-grid"><label>Správné odpovědi <span class="hint">jedna na řádek</span><textarea class="smart-answers">${esc(answers.join('\n'))}</textarea></label><div><label>Tolerance překlepů<input class="smart-tolerance" type="number" min="0" max="5" value="${esc(c.typo_tolerance??c.tolerance??0)}"></label><label>Maska / placeholder<input class="smart-placeholder" value="${esc(content.placeholder??c.placeholder??'')}"></label><label>Režim vstupu<select class="smart-input-mode"><option value="text" ${c.input_mode!=='numeric'?'selected':''}>Text</option><option value="numeric" ${c.input_mode==='numeric'?'selected':''}>Číselný kód</option></select></label></div></div>`;
+  }else if(t==='gps'||t==='gps_confirmation'){
+    const lat=c.latitude??c.lat??'',lng=c.longitude??c.lng??'',configured=lat!==''&&lat!==null&&lng!==''&&lng!==null;
+    html+=`<div class="smart-grid three"><label>Zeměpisná šířka<input class="smart-lat" type="number" step="any" min="-90" max="90" value="${esc(lat)}"></label><label>Zeměpisná délka<input class="smart-lng" type="number" step="any" min="-180" max="180" value="${esc(lng)}"></label><label>Rádius (m)<input class="smart-radius" type="number" min="1" max="10000" value="${esc(c.radius_m??c.radius??40)}"></label></div><div class="gps-state ${configured?'ready':'pending'}">${configured?`✓ GPS validace je připravená. Hráč musí být v okruhu ${esc(c.radius_m??c.radius??40)} m.`:'Souřadnice zatím nejsou nastavené. Player nemůže rozhodnout, zda je hráč na správném místě.'}</div>`;
+  }else if(t==='choice'){
+    html+=`<label>Možnosti <span class="hint">jedna na řádek</span><textarea class="smart-options">${esc(arr(c.options).map(o=>typeof o==='string'?o:(o.text??o.label??o.value??'')).join('\n'))}</textarea></label>`;
+  }else if(t==='quiz'){
+    html+=`<label>Otázky <span class="hint">formát: otázka | A ; B ; C | číslo správné možnosti</span><textarea class="smart-quiz-questions" rows="7">${esc(quizQuestionsText(c.questions))}</textarea></label>`;
+  }else if(t==='sorting'){
+    const configured=arr(c.correct_order).length>0;
+    html+=`<label>Zobrazení<select class="smart-sort-layout"><option value="list" ${c.layout==='list'||!c.layout?'selected':''}>Seznam</option><option value="cards" ${c.layout==='cards'?'selected':''}>Karty</option><option value="columns" ${c.layout==='columns'?'selected':''}>Svislé sloupce</option></select></label><div class="smart-grid sorting-grid"><label>Položky <span class="hint">ID | název | volitelný detail</span><textarea class="smart-items">${esc(sortingItemsText(c.items))}</textarea></label><label>Správné pořadí <span class="hint">ID položek, jedno na řádek</span><textarea class="smart-correct-order">${esc(sortingCorrectText(c.correct_order))}</textarea></label></div><label>Text po správném seřazení<textarea class="smart-success-text" rows="3">${esc(c.success_text||'')}</textarea></label><div class="sorting-state ${configured?'ready':'pending'}">${configured?`✓ Řazení má nastavené správné pořadí (${arr(c.correct_order).length} položek).`:'Správné pořadí zatím není nastavené.'}</div>`;
+  }else if(t==='logic_grid'){
+    const rows=arr(c.rows);const cols=arr(c.columns);const configured=rows.length&&cols.length&&Object.keys(c.correct||{}).length;
+    html+=`<div class="logic-help">Obecná logická tabulka: hráč vybírá pro každý řádek hodnotu v každém sloupci. Vyhodnocuje se vždy celá tabulka najednou.</div><div class="smart-grid"><label>Řádky <span class="hint">jeden název na řádek</span><textarea class="smart-grid-rows">${esc(rows.join('\n'))}</textarea></label><label>Sloupce <span class="hint">klíč | název | možnost1 ; možnost2</span><textarea class="smart-grid-columns logic-columns">${esc(logicColumnsText(cols))}</textarea></label></div><label>Správné řešení <span class="hint">řádek | klíč=hodnota | klíč=hodnota</span><textarea class="smart-grid-correct">${esc(logicCorrectText(c.correct||{}))}</textarea></label><label>Text po správném vyřešení<textarea class="smart-success-text" rows="3">${esc(c.success_text||'')}</textarea></label><div class="logic-state ${configured?'ready':'pending'}">${configured?'✓ Logická tabulka má definované řešení.':'Tabulka ještě nemá kompletní konfiguraci.'}</div>`;
+  }else if(t==='delay'){
+    html+=`<label>Prodleva (sekundy)<input class="smart-delay" type="number" min="0" value="${esc(c.seconds??c.delay_seconds??0)}"></label>`;
+  }else if(t==='photo'){
+    html+=`<div class="photo-settings"><label class="check"><input class="smart-required" type="checkbox" ${c.required===false?'':'checked'}> Fotografie je povinná pro pokračování</label><label class="check"><input class="smart-store-evidence" type="checkbox" ${c.store_as_evidence===false?'':'checked'}> Uložit fotografii jako důkaz v session</label><label class="check"><input class="smart-manual-review" type="checkbox" ${c.manual_review===true?'checked':''}> Vyžaduje ruční kontrolu administrátorem</label></div>`;
+  }else if(t==='confirm'){
+    html+=`<label>Text tlačítka<input class="smart-button-label" value="${esc(c.button_label||'Pokračovat')}"></label>`;
+  }else if(t==='image'||t==='document'){
+    const url=c.url||'';
+    html+=`<label>Veřejná URL média<input class="smart-media" value="${esc(url)}" placeholder="Nahraj soubor nebo vlož URL"></label><div class="asset-row"><label>Soubor<input class="smart-asset-file" type="file" accept="${t==='image'?'image/*':'image/*,application/pdf'}"></label><button type="button" class="secondary upload-asset">Nahrát soubor</button></div><div class="asset-status">${c.storage_path?`Uloženo: ${esc(c.storage_path)}`:''}</div>${t==='image'&&url?`<div class="asset-preview"><img src="${esc(url)}" alt="Náhled"></div>`:''}`;
+  }
+  if(HINTABLE_TYPES.has(t)){
+    const hints=arr(c.hints).map(h=>typeof h==='string'?h:(h.text??h.content??''));
+    html+=`<label>Nápovědy <span class="hint">jedna na řádek; zobrazují se postupně</span><textarea class="smart-hints" placeholder="První nápověda\nDruhá nápověda">${esc(hints.join('\n'))}</textarea></label>`;
+  }
+  return html;
+}
+
+function collectSmart(card,block,originalContent){
+  const config={...(block.config||{})},q=s=>card.querySelector(s),main=q('.smart-main')?.value??'';
+  const key=Object.prototype.hasOwnProperty.call(originalContent,'text')?'text':Object.prototype.hasOwnProperty.call(originalContent,'prompt')?'prompt':'text';
+  const content={...originalContent,[key]:main};
+  if(q('.smart-answers')){config.answers=lines(q('.smart-answers').value);config.typo_tolerance=Number(q('.smart-tolerance').value||0);config.input_mode=q('.smart-input-mode')?.value||'text';const p=q('.smart-placeholder')?.value.trim()||'';if(p)content.placeholder=p;else delete content.placeholder}
+  if(q('.smart-lat')){const lr=q('.smart-lat').value.trim(),gr=q('.smart-lng').value.trim(),lat=lr===''?null:Number(lr),lng=gr===''?null:Number(gr),radius=Number(q('.smart-radius').value||40);if(lat!==null&&(Number.isNaN(lat)||lat<-90||lat>90))throw new Error('Zeměpisná šířka musí být mezi -90 a 90.');if(lng!==null&&(Number.isNaN(lng)||lng<-180||lng>180))throw new Error('Zeměpisná délka musí být mezi -180 a 180.');if(!Number.isFinite(radius)||radius<1)throw new Error('Rádius musí být alespoň 1 metr.');config.latitude=lat;config.longitude=lng;config.radius_m=radius;config.validation=(lat!==null&&lng!==null)?'radius':'pending_coordinates'}
+  if(q('.smart-options'))config.options=lines(q('.smart-options').value);
+  if(q('.smart-quiz-questions'))config.questions=parseQuizQuestions(q('.smart-quiz-questions').value);
+  if(q('.smart-items')){const items=parseSortingItems(q('.smart-items').value),ids=items.map(x=>x.id),correct=lines(q('.smart-correct-order').value);if(new Set(ids).size!==ids.length)throw new Error('ID řazených položek musí být unikátní.');if(correct.length){if(correct.length!==items.length)throw new Error('Správné pořadí musí obsahovat stejný počet položek.');for(const id of correct)if(!ids.includes(id))throw new Error(`ID „${id}“ není mezi položkami.`);config.correct_order=correct;config.validation='exact_order'}else{config.correct_order=[];config.validation='pending'}config.items=items;config.layout=q('.smart-sort-layout')?.value||'list';config.success_text=q('.smart-success-text')?.value||''}
+  if(q('.smart-grid-rows')){const rows=lines(q('.smart-grid-rows').value),cols=parseLogicColumns(q('.smart-grid-columns').value);if(new Set(rows).size!==rows.length)throw new Error('Názvy řádků logické tabulky musí být unikátní.');config.rows=rows;config.columns=cols;config.correct=parseLogicCorrect(q('.smart-grid-correct').value,rows,cols);config.success_text=q('.smart-success-text')?.value||''}
+  if(q('.smart-delay'))config.seconds=Number(q('.smart-delay').value||0);
+  if(q('.smart-required'))config.required=q('.smart-required').checked;if(q('.smart-store-evidence'))config.store_as_evidence=q('.smart-store-evidence').checked;if(q('.smart-manual-review'))config.manual_review=q('.smart-manual-review').checked;
+  if(q('.smart-button-label'))config.button_label=q('.smart-button-label').value.trim()||'Pokračovat';
+  if(q('.smart-media'))config.url=q('.smart-media').value.trim();
+  if(q('.smart-hints'))config.hints=lines(q('.smart-hints').value);
+  return {content,config};
+}
+
+async function uploadAsset(block,card){
+  const input=card.querySelector('.smart-asset-file'),status=card.querySelector('.asset-status'),urlInput=card.querySelector('.smart-media');const file=input?.files?.[0];
+  if(!file){status.textContent='Vyber soubor.';return}
+  if(file.size>15*1024*1024){status.textContent='Soubor je větší než 15 MB.';return}
+  const safe=(file.name||'asset').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-100);
+  const path=`${game.slug}/v${version.version_number}/${selectedStage.id}/${crypto.randomUUID()}-${safe}`;
+  status.textContent='Nahrávám…';
+  const {error}=await supabase.storage.from('game-assets').upload(path,file,{upsert:false,contentType:file.type||undefined});
+  if(error){status.textContent='Nahrání selhalo: '+error.message;return}
+  const {data}=supabase.storage.from('game-assets').getPublicUrl(path);urlInput.value=data.publicUrl;status.textContent='Nahráno. Nezapomeň blok uložit.';block.config={...(block.config||{}),storage_path:path,bucket:'game-assets'};
+  const preview=card.querySelector('.asset-preview');if(preview&&file.type.startsWith('image/'))preview.innerHTML=`<img src="${esc(data.publicUrl)}" alt="Náhled">`;
+}
+
+function stageNameById(id){return stages.find(s=>s.id===id)?.internal_name||'Neznámá část'}
+function choiceLabel(block){const tr=block.block_translations?.find(t=>t.locale===(game?.default_locale||'cs'))||block.block_translations?.[0],c=tr?.content||{},text=(c.text??c.prompt??'').toString().trim();return `${stageNameById(block.stage_id)}: ${text||'Volba'}`}
+function conditionSummary(condition={}){const ch=condition?.choice;if(ch?.block_id){if(Object.prototype.hasOwnProperty.call(ch,'equals'))return `pokud volba = „${ch.equals}“`;if(Object.prototype.hasOwnProperty.call(ch,'not_equals'))return `pokud volba ≠ „${ch.not_equals}“`;if(Array.isArray(ch.one_of))return `pokud volba je jedna z ${ch.one_of.join(', ')}`}return 'vždy'}
+
+function renderTransitions(){
+  const host=$('transitionsEditor');if(!host||!selectedStage)return;const outgoing=transitions.filter(t=>t.from_stage_id===selectedStage.id).sort((a,b)=>Number(b.priority||0)-Number(a.priority||0));$('transitionCount').textContent=outgoing.length?`${outgoing.length} přechodů`:'konec hry';
+  if(!outgoing.length){host.innerHTML='<div class="transition-empty">Tato část nemá další přechod. V Playeru tedy funguje jako <strong>konec hry</strong>.</div>';return}
+  host.innerHTML='';outgoing.forEach((t,i)=>{const ch=t.condition?.choice||{},card=document.createElement('div');card.className='transition-card';card.innerHTML=`<div class="transition-row"><div><strong>${i+1}. → ${esc(stageNameById(t.to_stage_id))}</strong><div class="muted small">${esc(conditionSummary(t.condition))}</div></div><button class="danger delete-transition" ${isReadOnly()?'disabled':''}>Smazat</button></div><div class="smart-grid three"><label>Cílová část<select class="transition-target" ${isReadOnly()?'disabled':''}>${stages.filter(s=>s.id!==selectedStage.id).map(s=>`<option value="${s.id}" ${s.id===t.to_stage_id?'selected':''}>${esc(s.internal_name)}</option>`).join('')}</select></label><label>Typ podmínky<select class="transition-type" ${isReadOnly()?'disabled':''}><option value="always" ${!ch.block_id?'selected':''}>Vždy</option><option value="choice" ${ch.block_id?'selected':''}>Podle volby hráče</option></select></label><label>Priorita<input class="transition-priority" type="number" value="${esc(t.priority??0)}" ${isReadOnly()?'disabled':''}></label></div><div class="transition-condition ${ch.block_id?'':'hidden'}"><div class="smart-grid"><label>Blok s volbou<select class="transition-choice-block" ${isReadOnly()?'disabled':''}><option value="">Vyber volbu…</option>${allChoiceBlocks.map(b=>`<option value="${b.id}" ${b.id===ch.block_id?'selected':''}>${esc(choiceLabel(b))}</option>`).join('')}</select></label><label>Hodnota volby<input class="transition-choice-value" value="${esc(ch.equals??'')}" ${isReadOnly()?'disabled':''}></label></div></div><div class="transition-actions"><button class="save-transition" ${isReadOnly()?'disabled':''}>Uložit přechod</button></div>`;
+    const type=card.querySelector('.transition-type');type.onchange=()=>card.querySelector('.transition-condition').classList.toggle('hidden',type.value!=='choice');card.querySelector('.save-transition').onclick=()=>saveTransition(t,card);card.querySelector('.delete-transition').onclick=()=>deleteTransition(t);host.appendChild(card)});
+}
+async function saveTransition(t,card){if(isReadOnly())return;try{const to_stage_id=card.querySelector('.transition-target').value,priority=Number(card.querySelector('.transition-priority').value||0),type=card.querySelector('.transition-type').value;let condition={};if(type==='choice'){const block_id=card.querySelector('.transition-choice-block').value,equals=card.querySelector('.transition-choice-value').value.trim();if(!block_id)throw new Error('Vyber blok s volbou.');if(!equals)throw new Error('Zadej hodnotu volby.');condition={choice:{block_id,equals}}}const {error}=await supabase.from('transitions').update({to_stage_id,priority,condition}).eq('id',t.id);if(error)throw error;toast('Přechod uložen');await loadVersion()}catch(e){alert('Uložení přechodu se nezdařilo: '+errText(e))}}
+async function deleteTransition(t){if(isReadOnly()||!confirm('Opravdu smazat tento přechod?'))return;const {error}=await supabase.from('transitions').delete().eq('id',t.id);if(error){alert(errText(error));return}toast('Přechod smazán');await loadVersion()}
+$('addTransitionBtn').onclick=async()=>{if(!selectedStage||isReadOnly())return;const fallback=stages.find(s=>s.position>selectedStage.position)||stages.find(s=>s.id!==selectedStage.id);if(!fallback){alert('Neexistuje jiná část, na kterou by mohl přechod vést.');return}const {error}=await supabase.from('transitions').insert({game_version_id:version.id,from_stage_id:selectedStage.id,to_stage_id:fallback.id,condition:{},priority:0});if(error){alert('Přidání přechodu se nezdařilo: '+errText(error));return}toast('Přechod přidán');await loadVersion()};
+
+function renderBlocks(blocks){
+  const host=$('blocks');host.innerHTML='';
+  blocks.forEach((block,i)=>{const tr=contentFor(block),content=tr?.content||{},card=document.createElement('article');card.className='block';card.innerHTML=`<div class="block-head"><div class="block-type"><span>${i+1}.</span><span>${esc(BLOCK_LABELS[block.block_type]||block.block_type)}</span></div><div class="block-head-actions"><span class="pos">${esc(block.block_type)}</span><button class="secondary move-up" ${isReadOnly()||i===0?'disabled':''}>↑</button><button class="secondary move-down" ${isReadOnly()||i===blocks.length-1?'disabled':''}>↓</button></div></div><div class="block-body"><div class="smart-fields">${smartFields(block,content)}</div><details class="advanced"><summary>Pokročilé nastavení JSON</summary><label>Lokalizovaný obsah (JSON)<textarea class="json content-json" ${isReadOnly()?'disabled':''}>${esc(JSON.stringify(content,null,2))}</textarea></label><label>Herní logika / config (JSON)<textarea class="json config-json" ${isReadOnly()?'disabled':''}>${esc(JSON.stringify(block.config||{},null,2))}</textarea></label></details><div class="block-actions"><button class="danger delete-block" ${isReadOnly()?'disabled':''}>Smazat blok</button><button class="save-block" ${isReadOnly()?'disabled':''}>Uložit blok</button></div></div>`;
+    if(isReadOnly())card.querySelectorAll('.smart-fields input,.smart-fields textarea,.smart-fields select,.smart-fields button').forEach(x=>x.disabled=true);
+    card.querySelector('.save-block').onclick=()=>saveBlock(block,tr,card,content);card.querySelector('.delete-block').onclick=()=>deleteBlock(block);card.querySelector('.move-up').onclick=()=>moveBlock(i,-1);card.querySelector('.move-down').onclick=()=>moveBlock(i,1);const up=card.querySelector('.upload-asset');if(up)up.onclick=()=>uploadAsset(block,card);host.appendChild(card)});
+}
+async function saveBlock(block,tr,card,originalContent){
+  if(isReadOnly())return;
+  try{let {content,config}=collectSmart(card,block,originalContent);if(block.config?.storage_path&&!config.storage_path){config.storage_path=block.config.storage_path;config.bucket=block.config.bucket||'game-assets'}const details=card.querySelector('details.advanced');if(details?.open){content=JSON.parse(card.querySelector('.content-json').value||'{}');config=JSON.parse(card.querySelector('.config-json').value||'{}')}const {error:e1}=await supabase.from('blocks').update({config}).eq('id',block.id);if(e1)throw e1;if(tr){const {error:e2}=await supabase.from('block_translations').update({content}).eq('id',tr.id);if(e2)throw e2}else{const {error:e2}=await supabase.from('block_translations').insert({block_id:block.id,locale:game.default_locale||'cs',content});if(e2)throw e2}toast('Blok uložen');await openStage(selectedStage)}catch(e){alert('Uložení se nezdařilo: '+errText(e))}
+}
+async function persistOrder(table,items){const temps=tempPositions(items);for(let i=0;i<items.length;i++){const {error}=await supabase.from(table).update({position:temps[i]}).eq('id',items[i].id);if(error)throw error}for(let i=0;i<items.length;i++){const {error}=await supabase.from(table).update({position:i+1}).eq('id',items[i].id);if(error)throw error}}
+async function moveBlock(index,delta){if(isReadOnly())return;const j=index+delta;if(j<0||j>=currentBlocks.length)return;const reordered=[...currentBlocks];[reordered[index],reordered[j]]=[reordered[j],reordered[index]];try{await persistOrder('blocks',reordered);toast('Pořadí bloků změněno');await openStage(selectedStage)}catch(e){alert('Změna pořadí se nezdařila: '+errText(e))}}
+async function deleteBlock(block){if(isReadOnly()||!confirm(`Opravdu smazat blok „${block.block_type}“? Tuto akci nelze vrátit.`))return;try{const {error:e1}=await supabase.from('block_translations').delete().eq('block_id',block.id);if(e1)throw e1;const {error:e2}=await supabase.from('blocks').delete().eq('id',block.id);if(e2)throw e2;const remaining=currentBlocks.filter(b=>b.id!==block.id);if(remaining.length)await persistOrder('blocks',remaining);toast('Blok smazán');await openStage(selectedStage)}catch(e){alert('Smazání se nezdařilo: '+errText(e))}}
+
+$('addBlockBtn').onclick=()=>{if(isReadOnly())return;$('newBlockType').value='narrator_message';$('newBlockText').value='';$('addBlockDialog').showModal()};
+$('cancelBlockBtn').onclick=()=>$('addBlockDialog').close();
+$('addBlockForm').addEventListener('submit',async e=>{e.preventDefault();if(!selectedStage||isReadOnly())return;try{const position=(currentBlocks.length?Math.max(...currentBlocks.map(b=>b.position||0)):0)+1,type=$('newBlockType').value;let defaultConfig={};if(type==='gps')defaultConfig={latitude:null,longitude:null,radius_m:40,validation:'pending_coordinates'};if(type==='photo')defaultConfig={required:true,store_as_evidence:true,manual_review:false};if(type==='sorting')defaultConfig={items:[],correct_order:[],layout:'list',validation:'pending'};if(type==='logic_grid')defaultConfig={rows:[],columns:[],correct:{}};if(type==='confirm')defaultConfig={button_label:'Pokračovat'};const {data:b,error:e1}=await supabase.from('blocks').insert({stage_id:selectedStage.id,block_type:type,position,config:defaultConfig}).select('id').single();if(e1)throw e1;const {error:e2}=await supabase.from('block_translations').insert({block_id:b.id,locale:game.default_locale||'cs',content:{text:$('newBlockText').value}});if(e2){await supabase.from('blocks').delete().eq('id',b.id);throw e2}$('addBlockDialog').close();toast('Blok přidán');await openStage(selectedStage)}catch(e){alert('Přidání bloku se nezdařilo: '+errText(e))}});
+
+$('saveStageBtn').onclick=async()=>{if(!selectedStage||isReadOnly())return;const patch={internal_name:$('stageName').value.trim(),internal_note:$('stageNote').value};const {error}=await supabase.from('stages').update(patch).eq('id',selectedStage.id);if(error){alert(errText(error));return}selectedStage={...selectedStage,...patch};toast('Část uložena');await loadVersion()};
+$('addStageBtn').onclick=()=>{if(isReadOnly())return;$('newStageName').value='';$('newStageNote').value='';$('addStageDialog').showModal()};$('cancelStageBtn').onclick=()=>$('addStageDialog').close();
+$('addStageForm').addEventListener('submit',async e=>{e.preventDefault();if(isReadOnly())return;try{const position=(stages.length?Math.max(...stages.map(s=>s.position||0)):0)+1;const {data:s,error}=await supabase.from('stages').insert({game_version_id:version.id,internal_name:$('newStageName').value.trim(),internal_note:$('newStageNote').value,position}).select('*').single();if(error)throw error;if(stages.length){const previous=stages[stages.length-1];const {error:te}=await supabase.from('transitions').insert({game_version_id:version.id,from_stage_id:previous.id,to_stage_id:s.id,condition:{},priority:0});if(te)throw te}selectedStage=s;$('addStageDialog').close();toast('Část přidána');await loadVersion()}catch(e){alert('Přidání části se nezdařilo: '+errText(e))}});
+async function moveStage(delta){if(isReadOnly())return;const idx=stages.findIndex(s=>s.id===selectedStage?.id),j=idx+delta;if(idx<0||j<0||j>=stages.length)return;const reordered=[...stages];[reordered[idx],reordered[j]]=[reordered[j],reordered[idx]];try{await persistOrder('stages',reordered);toast('Pořadí částí změněno');await loadVersion()}catch(e){alert('Změna pořadí se nezdařila: '+errText(e))}}
+$('stageUpBtn').onclick=()=>moveStage(-1);$('stageDownBtn').onclick=()=>moveStage(1);
+$('deleteStageBtn').onclick=async()=>{if(!selectedStage||isReadOnly()||!confirm(`Opravdu smazat část „${selectedStage.internal_name}“ včetně všech jejích bloků?`))return;try{const blockIds=currentBlocks.map(b=>b.id);if(blockIds.length){const {error:e1}=await supabase.from('block_translations').delete().in('block_id',blockIds);if(e1)throw e1;const {error:e2}=await supabase.from('blocks').delete().eq('stage_id',selectedStage.id);if(e2)throw e2}const {error:e3}=await supabase.from('transitions').delete().or(`from_stage_id.eq.${selectedStage.id},to_stage_id.eq.${selectedStage.id}`);if(e3)throw e3;const {error:e4}=await supabase.from('stages').delete().eq('id',selectedStage.id);if(e4)throw e4;const remaining=stages.filter(s=>s.id!==selectedStage.id);if(remaining.length)await persistOrder('stages',remaining);selectedStage=null;toast('Část smazána');await loadVersion()}catch(e){alert('Smazání části se nezdařilo: '+errText(e))}};
+
+const {data:{session}}=await supabase.auth.getSession();
+await showSession(session);
+
+</script>
+</body>
+</html>
