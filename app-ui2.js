@@ -35,6 +35,20 @@ function markSolvedUI(w,b){
  if(resp?.kind==='gps'){
    const r=w.querySelector('.result'); if(r)r.textContent=resp.value?.validated===false?'Poloha zaznamenána; cílové souřadnice ještě nejsou nastavené.':'Poloha potvrzena.';
  }
+ if(resp?.kind==='sorting'){
+   const order=Array.isArray(resp.value)?resp.value:[];
+   const list=w.querySelector('.sortList');
+   if(list&&order.length){
+     const byId=new Map([...list.querySelectorAll('.sortRow')].map(row=>[String(row.dataset.value),row]));
+     for(const id of order){const row=byId.get(String(id));if(row)list.appendChild(row)}
+   }
+   const r=w.querySelector('.result');if(r)r.textContent=cfg.success_text||'Správně.';
+ }
+ if(resp?.kind==='logic_grid'){
+   const vals=resp.value||{};
+   w.querySelectorAll('.logicSelect').forEach(sel=>{sel.value=vals?.[sel.dataset.row]?.[sel.dataset.key]??'';sel.disabled=true});
+   const r=w.querySelector('.result');if(r)r.textContent=cfg.success_text||'Správně.';
+ }
 }
 function renderSavedUntil(target){
  const blocks=data.stages[stageIndex].blocks||[];
@@ -335,7 +349,7 @@ function exitGame(){
  };
 }
 async function boot(code){
- root.innerHTML=`<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><button id="cancelLoad" class="exitGameBtn" type="button">Jiný kód</button></div><section class="case"><div class="casehead"><h1>Spiknutí</h1></div><div class="bubble">Načítám rozehranou hru…</div></section></div>`;
+ root.innerHTML=`<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><button id="cancelLoad" class="exitGameBtn" type="button">Jiný kód</button></div><section class="case"><div class="casehead"><h1>Questplore</h1></div><div class="bubble">Načítám rozehranou hru…</div></section></div>`;
  const cancelLoad=document.getElementById('cancelLoad'); if(cancelLoad)cancelLoad.onclick=clearLocalSession;
  const controller=new AbortController();
  const timer=setTimeout(()=>controller.abort(),15000);
@@ -364,7 +378,7 @@ async function boot(code){
  waiting=false; visible=[]; shell(); const target=cursor; renderFullHistory(target); revealUntilStop(); setupSync();
 }
 function entry(){
- root.innerHTML=`<div class="shell"><section class="case"><div class="casehead"><h1>Spiknutí</h1></div><div class="bubble task"><div class="text">Zadejte kód hry</div><div class="answer"><input id="gameCode" value="" placeholder="Kód hry" autocomplete="off" autocapitalize="characters"><button id="startGame" class="btn">Vstoupit do hry</button></div><div id="entryError" class="result muted"></div></div></section></div>`;
+ root.innerHTML=`<div class="shell"><section class="case"><div class="casehead"><h1>Questplore</h1></div><div class="bubble task"><div class="text">Zadejte kód hry</div><div class="answer"><input id="gameCode" value="" placeholder="Kód hry" autocomplete="off" autocapitalize="characters"><button id="startGame" class="btn">Vstoupit do hry</button></div><div id="entryError" class="result muted"></div></div></section></div>`;
  document.getElementById('startGame').onclick=async()=>{
    const btn=document.getElementById('startGame'),err=document.getElementById('entryError');
    try{
