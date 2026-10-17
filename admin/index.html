@@ -15,7 +15,7 @@ label{display:block;color:#d6d9df;font-weight:650;margin:14px 0 6px}input,textar
 aside{grid-area:aside;border-right:1px solid var(--line);background:#12151a;overflow:auto;padding:18px}.aside-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.aside h2{margin:4px 0;font-size:20px}.small{font-size:11px}.muted{color:var(--muted)}nav{margin-top:18px}.stage-link{display:flex;gap:10px;width:100%;text-align:left;background:transparent;color:var(--text);font-weight:600;padding:11px 10px;margin:3px 0}.stage-link:hover,.stage-link.active{background:var(--panel2);color:var(--accent)}.stage-num{color:var(--muted);min-width:24px}.wide{width:100%}.add-stage{margin-top:16px}.published-notice,.tipbox{border:1px solid #5e4a28;background:#282116;color:#e5c98f;border-radius:10px;padding:10px 12px;font-size:12px;margin-top:14px}.tipbox{margin:18px 0 0;border-color:#34404a;background:#141b20;color:#b8c4cc}
 .workspace{grid-area:main;overflow:auto;padding:28px 34px}.empty{color:var(--muted);display:grid;place-items:center;height:65vh}.stage-top{display:flex;justify-content:space-between;gap:20px;align-items:center}.stage-top>div:first-child{flex:1}.title-input{font-size:27px;font-weight:800;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:6px 0}.stage-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.section-title{display:flex;align-items:center;gap:10px;margin:28px 0 12px}.badge{background:var(--panel2);color:var(--muted);border-radius:999px;padding:3px 8px;font-size:12px}.push-right{margin-left:auto}
 .block{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden}.block-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#191d23}.block-type{display:flex;align-items:center;gap:9px;font-weight:800}.pos{color:var(--muted);font-size:12px}.block-head-actions{display:flex;align-items:center;gap:6px}.block-head-actions button{padding:6px 9px;min-width:34px}.block-body{padding:14px}.block-actions{display:flex;justify-content:flex-end;gap:8px;align-items:center;margin-top:12px}.block-actions .danger{margin-right:auto}.json{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;min-height:90px}.content-text{min-height:110px}
-.smart-fields{display:grid;gap:14px}.smart-grid,.form-grid{display:grid;grid-template-columns:2fr 1fr;gap:12px}.smart-grid.three,.form-grid.three{grid-template-columns:repeat(3,1fr)}.form-grid.two{grid-template-columns:1fr 1fr}.hint{font-size:12px;opacity:.6;font-weight:400}.advanced{border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.advanced summary{cursor:pointer;color:#aeb5c2;margin-bottom:12px}.check{display:flex!important;align-items:center;gap:10px}.check input{width:auto}.smart-fields input,.smart-fields select{width:100%}.smart-hints{min-height:90px}.smart-items,.smart-correct-order,.smart-grid-correct{min-height:150px}.sorting-grid{grid-template-columns:1fr 1fr}
+.smart-fields{display:grid;gap:14px}.smart-grid,.form-grid{display:grid;grid-template-columns:2fr 1fr;gap:12px}.smart-grid.three,.form-grid.three{grid-template-columns:repeat(3,1fr)}.form-grid.two{grid-template-columns:1fr 1fr}.hint{font-size:12px;opacity:.6;font-weight:400}.advanced{border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.advanced summary{cursor:pointer;color:#aeb5c2;margin-bottom:12px}.check{display:flex!important;align-items:center;gap:10px}.check input{width:auto}.smart-fields input,.smart-fields select{width:100%}.hint-grid textarea{min-height:86px}.smart-items,.smart-correct-order,.smart-grid-correct{min-height:150px}.sorting-grid{grid-template-columns:1fr 1fr}
 .gps-state,.sorting-state,.logic-state{border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.45}.ready{background:#15231a!important;border-color:#315a3b!important;color:#b9e2c1!important}.pending{background:#282116!important;border-color:#5e4a28!important;color:#e5c98f!important}.photo-settings{display:grid;gap:6px;padding:4px 0}.asset-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}.asset-status{font-size:12px;color:var(--muted);margin-top:4px}.asset-preview img{max-width:260px;max-height:180px;object-fit:contain;border:1px solid var(--line);border-radius:8px;margin-top:8px;background:#0c0e11}.logic-help{font-size:12px;color:var(--muted);margin-top:-6px}.logic-columns{min-height:120px}
 .transition-title{margin-top:26px}#transitionsEditor{display:grid;gap:12px;margin-bottom:24px}.transition-card{border:1px solid #343d38;background:#111513;border-radius:14px;padding:14px}.transition-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.transition-condition{margin-top:12px;padding-top:12px;border-top:1px solid #2b332f}.transition-actions{display:flex;justify-content:flex-end;margin-top:12px}.transition-empty{border:1px dashed #465049;border-radius:12px;padding:16px;color:#aeb6ad;background:#101411}.transition-card select,.transition-card input{width:100%}
 #toast{position:fixed;right:20px;bottom:20px;z-index:50;background:#edf8ef;color:#183c20;padding:11px 15px;border-radius:9px;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none}#toast.show{opacity:1;transform:none}
@@ -61,6 +61,7 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
         <label class="compact version-compact">Verze<select id="versionSelect"></select></label>
         <button id="newVersionBtn" class="secondary">+ Nová verze</button>
         <button id="publishBtn">Publikovat verzi</button>
+        <button id="testGameBtn" class="secondary">Otestovat hru</button>
         <button id="testCodeBtn" class="secondary">Testovací kód</button>
       </div>
       <div class="header-actions">
@@ -432,6 +433,12 @@ $('gameForm').addEventListener('submit',async e=>{
   }catch(e){$('gameFormMessage').textContent='Uložení se nezdařilo: '+errText(e)}
 });
 
+$('testGameBtn').onclick=()=>{
+  if(!version)return;
+  const win=window.open(previewUrl(),'_blank');
+  if(!win)alert('Prohlížeč zablokoval nové okno. Povol v Safari vyskakovací okna pro Questplore Admin.');
+};
+
 $('newVersionBtn').onclick=async()=>{
   if(!game)return;
   if(!confirm(`Vytvořit novou pracovní verzi hry „${game.name}“ jako kopii poslední verze?`))return;
@@ -535,7 +542,7 @@ function smartFields(block,content){
   }
   if(HINTABLE_TYPES.has(t)){
     const hints=arr(c.hints).map(h=>typeof h==='string'?h:(h.text??h.content??''));
-    html+=`<label>Nápovědy <span class="hint">jedna na řádek; zobrazují se postupně</span><textarea class="smart-hints" placeholder="První nápověda\nDruhá nápověda">${esc(hints.join('\n'))}</textarea></label>`;
+    html+=`<div class="smart-grid hint-grid"><label>Nápověda 1<textarea class="smart-hint-1" rows="3" placeholder="První, jemnější nápověda">${esc(hints[0]||'')}</textarea></label><label>Nápověda 2<textarea class="smart-hint-2" rows="3" placeholder="Druhá, konkrétnější nápověda">${esc(hints[1]||'')}</textarea></label></div>`;
   }
   return html;
 }
@@ -554,7 +561,7 @@ function collectSmart(card,block,originalContent){
   if(q('.smart-required'))config.required=q('.smart-required').checked;if(q('.smart-store-evidence'))config.store_as_evidence=q('.smart-store-evidence').checked;if(q('.smart-manual-review'))config.manual_review=q('.smart-manual-review').checked;
   if(q('.smart-button-label'))config.button_label=q('.smart-button-label').value.trim()||'Pokračovat';
   if(q('.smart-media'))config.url=q('.smart-media').value.trim();
-  if(q('.smart-hints'))config.hints=lines(q('.smart-hints').value);
+  if(q('.smart-hint-1')||q('.smart-hint-2'))config.hints=[q('.smart-hint-1')?.value.trim()||'',q('.smart-hint-2')?.value.trim()||''].filter(Boolean);
   return {content,config};
 }
 
@@ -587,13 +594,39 @@ $('addTransitionBtn').onclick=async()=>{if(!selectedStage||isReadOnly())return;c
 
 function renderBlocks(blocks){
   const host=$('blocks');host.innerHTML='';
-  blocks.forEach((block,i)=>{const tr=contentFor(block),content=tr?.content||{},card=document.createElement('article');card.className='block';card.innerHTML=`<div class="block-head"><div class="block-type"><span>${i+1}.</span><span>${esc(BLOCK_LABELS[block.block_type]||block.block_type)}</span></div><div class="block-head-actions"><span class="pos">${esc(block.block_type)}</span><button class="secondary move-up" ${isReadOnly()||i===0?'disabled':''}>↑</button><button class="secondary move-down" ${isReadOnly()||i===blocks.length-1?'disabled':''}>↓</button></div></div><div class="block-body"><div class="smart-fields">${smartFields(block,content)}</div><details class="advanced"><summary>Pokročilé nastavení JSON</summary><label>Lokalizovaný obsah (JSON)<textarea class="json content-json" ${isReadOnly()?'disabled':''}>${esc(JSON.stringify(content,null,2))}</textarea></label><label>Herní logika / config (JSON)<textarea class="json config-json" ${isReadOnly()?'disabled':''}>${esc(JSON.stringify(block.config||{},null,2))}</textarea></label></details><div class="block-actions"><button class="danger delete-block" ${isReadOnly()?'disabled':''}>Smazat blok</button><button class="save-block" ${isReadOnly()?'disabled':''}>Uložit blok</button></div></div>`;
+  blocks.forEach((block,i)=>{const tr=contentFor(block),content=tr?.content||{},card=document.createElement('article');card.className='block';card.innerHTML=`<div class="block-head"><div class="block-type"><span>${i+1}.</span><span>${esc(BLOCK_LABELS[block.block_type]||block.block_type)}</span></div><div class="block-head-actions"><span class="pos">${esc(block.block_type)}</span><button class="secondary move-up" ${isReadOnly()||i===0?'disabled':''}>↑</button><button class="secondary move-down" ${isReadOnly()||i===blocks.length-1?'disabled':''}>↓</button></div></div><div class="block-body"><div class="smart-fields">${smartFields(block,content)}</div><details class="advanced"><summary>Pokročilé nastavení JSON</summary><label>Lokalizovaný obsah (JSON)<textarea class="json content-json" ${isReadOnly()?'disabled':''}>${esc(JSON.stringify(content,null,2))}</textarea></label><label>Herní logika / config (JSON)<textarea class="json config-json" ${isReadOnly()?'disabled':''}>${esc(JSON.stringify(block.config||{},null,2))}</textarea></label></details><div class="block-actions"><button class="danger delete-block" ${isReadOnly()?'disabled':''}>Smazat blok</button><button class="secondary test-block">Otestovat</button><button class="save-block" ${isReadOnly()?'disabled':''}>Uložit blok</button></div></div>`;
     if(isReadOnly())card.querySelectorAll('.smart-fields input,.smart-fields textarea,.smart-fields select,.smart-fields button').forEach(x=>x.disabled=true);
-    card.querySelector('.save-block').onclick=()=>saveBlock(block,tr,card,content);card.querySelector('.delete-block').onclick=()=>deleteBlock(block);card.querySelector('.move-up').onclick=()=>moveBlock(i,-1);card.querySelector('.move-down').onclick=()=>moveBlock(i,1);const up=card.querySelector('.upload-asset');if(up)up.onclick=()=>uploadAsset(block,card);host.appendChild(card)});
+    card.querySelector('.save-block').onclick=()=>saveBlock(block,tr,card,content);card.querySelector('.test-block').onclick=()=>testBlock(block,tr,card,content);card.querySelector('.delete-block').onclick=()=>deleteBlock(block);card.querySelector('.move-up').onclick=()=>moveBlock(i,-1);card.querySelector('.move-down').onclick=()=>moveBlock(i,1);const up=card.querySelector('.upload-asset');if(up)up.onclick=()=>uploadAsset(block,card);host.appendChild(card)});
+}
+async function persistBlockEdits(block,tr,card,originalContent){
+  let {content,config}=collectSmart(card,block,originalContent);
+  if(block.config?.storage_path&&!config.storage_path){config.storage_path=block.config.storage_path;config.bucket=block.config.bucket||'game-assets'}
+  const details=card.querySelector('details.advanced');
+  if(details?.open){content=JSON.parse(card.querySelector('.content-json').value||'{}');config=JSON.parse(card.querySelector('.config-json').value||'{}')}
+  const {error:e1}=await supabase.from('blocks').update({config}).eq('id',block.id);if(e1)throw e1;
+  if(tr){const {error:e2}=await supabase.from('block_translations').update({content}).eq('id',tr.id);if(e2)throw e2}
+  else{const {error:e2}=await supabase.from('block_translations').insert({block_id:block.id,locale:game.default_locale||'cs',content});if(e2)throw e2}
+  return {content,config};
 }
 async function saveBlock(block,tr,card,originalContent){
   if(isReadOnly())return;
-  try{let {content,config}=collectSmart(card,block,originalContent);if(block.config?.storage_path&&!config.storage_path){config.storage_path=block.config.storage_path;config.bucket=block.config.bucket||'game-assets'}const details=card.querySelector('details.advanced');if(details?.open){content=JSON.parse(card.querySelector('.content-json').value||'{}');config=JSON.parse(card.querySelector('.config-json').value||'{}')}const {error:e1}=await supabase.from('blocks').update({config}).eq('id',block.id);if(e1)throw e1;if(tr){const {error:e2}=await supabase.from('block_translations').update({content}).eq('id',tr.id);if(e2)throw e2}else{const {error:e2}=await supabase.from('block_translations').insert({block_id:block.id,locale:game.default_locale||'cs',content});if(e2)throw e2}toast('Blok uložen');await openStage(selectedStage)}catch(e){alert('Uložení se nezdařilo: '+errText(e))}
+  try{await persistBlockEdits(block,tr,card,originalContent);toast('Blok uložen');await openStage(selectedStage)}catch(e){alert('Uložení se nezdařilo: '+errText(e))}
+}
+function previewUrl(blockId=null){
+  const u=new URL('./preview.html',location.href);
+  u.searchParams.set('version',version.id);
+  if(blockId)u.searchParams.set('block',blockId);
+  return u.toString();
+}
+async function testBlock(block,tr,card,originalContent){
+  if(!version)return;
+  const win=window.open('about:blank','_blank');
+  if(!win){alert('Prohlížeč zablokoval nové okno. Povol v Safari vyskakovací okna pro Questplore Admin.');return}
+  try{
+    win.document.write('<title>Questplore — připravuji náhled</title><body style="background:#0e1013;color:#eee;font-family:system-ui;padding:30px">Připravuji náhled bloku…</body>');
+    if(!isReadOnly())await persistBlockEdits(block,tr,card,originalContent);
+    win.location.href=previewUrl(block.id);
+  }catch(e){win.close();alert('Náhled se nepodařilo připravit: '+errText(e))}
 }
 async function persistOrder(table,items){const temps=tempPositions(items);for(let i=0;i<items.length;i++){const {error}=await supabase.from(table).update({position:temps[i]}).eq('id',items[i].id);if(error)throw error}for(let i=0;i<items.length;i++){const {error}=await supabase.from(table).update({position:i+1}).eq('id',items[i].id);if(error)throw error}}
 async function moveBlock(index,delta){if(isReadOnly())return;const j=index+delta;if(j<0||j>=currentBlocks.length)return;const reordered=[...currentBlocks];[reordered[index],reordered[j]]=[reordered[j],reordered[index]];try{await persistOrder('blocks',reordered);toast('Pořadí bloků změněno');await openStage(selectedStage)}catch(e){alert('Změna pořadí se nezdařila: '+errText(e))}}
