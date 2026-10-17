@@ -61,7 +61,7 @@ function renderSavedUntil(target){
    }
    appendBlock(b);
    const last=document.querySelector('#feed .reveal:last-child');
-   if(interactive(b.block_type)&&state.solved?.[b.id])markSolvedUI(last,b);
+   if((interactive(b.block_type)||b.block_type==='logic_grid')&&state.solved?.[b.id])markSolvedUI(last,b);
    cursor++;
  }
 }
