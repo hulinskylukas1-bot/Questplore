@@ -16,19 +16,28 @@ function hintHTML(b){
  if(!hints.length)return '';
  return `<div class="hintbox" data-count="0"><button class="btn secondary hintBtn">Nápověda</button><div class="hintList"></div></div>`;
 }
-function sortingRows(items){
- return `<div class="sortList">${items.map((item,i)=>`<div class="sortRow" data-value="${esc(item)}"><span class="sortHandle">☰</span><span class="sortText">${esc(item)}</span><span class="sortMoves"><button type="button" class="sortUp" aria-label="Posunout nahoru">↑</button><button type="button" class="sortDown" aria-label="Posunout dolů">↓</button></span></div>`).join('')}</div>`;
+function sortItemParts(item,i){
+ if(typeof item==='string')return {id:item,label:item,detail:''};
+ return {id:String(item?.id??item?.value??item?.label??`item-${i+1}`),label:String(item?.label??item?.text??item?.id??''),detail:String(item?.detail??'')};
+}
+function sortingRows(items,layout='list'){
+ return `<div class="sortList sort-${esc(layout)}">${items.map((item,i)=>{const p=sortItemParts(item,i);return `<div class="sortRow" data-value="${esc(p.id)}"><span class="sortHandle">☰</span><span class="sortText"><strong>${esc(p.label)}</strong>${p.detail?`<small>${esc(p.detail)}</small>`:''}</span><span class="sortMoves"><button type="button" class="sortUp" aria-label="Posunout nahoru">↑</button><button type="button" class="sortDown" aria-label="Posunout dolů">↓</button></span></div>`}).join('')}</div>`;
+}
+function logicGridHTML(cfg){
+ const rows=Array.isArray(cfg.rows)?cfg.rows:[],cols=Array.isArray(cfg.columns)?cfg.columns:[];
+ if(!rows.length||!cols.length)return '<div class="placeholder">Logická tabulka zatím není nastavená.</div>';
+ return `<div class="logicGridWrap"><table class="logicGrid"><thead><tr><th></th>${cols.map(c=>`<th>${esc(c.label||c.key||'')}</th>`).join('')}</tr></thead><tbody>${rows.map((row,ri)=>`<tr data-row="${esc(row)}"><th>${esc(row)}</th>${cols.map((col,ci)=>`<td><select class="logicSelect" data-row="${esc(row)}" data-key="${esc(col.key||ci)}"><option value="">— vyberte —</option>${(col.options||[]).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 function blockHTML(b){
  const c=b.content||{},cfg=b.config||{},t=b.block_type,txt=main(c);
  if(t==='conditional_message'||t==='narrator_message') return `<div class="bubble narrator"><div class="text">${esc(txt)}</div></div>`;
  if(t==='instruction') return `<div class="bubble instruction"><div class="text">${esc(txt)}</div></div>`;
- if(t==='document') return `<div class="bubble"><div class="doc text">${esc(txt)}</div></div>`;
- if(t==='image') return `<div class="bubble">${cfg.url||cfg.storage_path?`<img src="${esc(cfg.url||cfg.storage_path)}" class="media">`:`<div class="placeholder">Obrázek zatím není nahraný.</div>`}</div>`;
+ if(t==='document') return `<div class="bubble"><div class="doc text">${esc(txt)}</div>${cfg.url?`<a class="docLink" href="${esc(cfg.url)}" target="_blank" rel="noopener">Otevřít dokument</a>`:''}</div>`;
+ if(t==='image') return `<div class="bubble">${cfg.url||(/^https?:/.test(cfg.storage_path||'')?cfg.storage_path:'')?`<img src="${esc(cfg.url||cfg.storage_path)}" class="media">`:`<div class="placeholder">Obrázek zatím není nahraný.</div>`}</div>`;
  if(t==='confirm') return `<div class="bubble task" data-id="${b.id}"><div class="text">${esc(txt)}</div><button class="btn confirmbtn">${esc(cfg.button_label||'Pokračovat')}</button>${hintHTML(b)}</div>`;
  if(t==='text_answer'||t==='multi_term_answer'){
    const placeholder=c.placeholder||cfg.placeholder||'Napište odpověď';
-   return `<div class="bubble task" data-id="${b.id}"><div class="text">${esc(txt)}</div><div class="answer"><input placeholder="${esc(placeholder)}" autocomplete="off"><button class="btn check">Potvrdit</button></div><div class="result muted"></div>${hintHTML(b)}</div>`;
+   return `<div class="bubble task" data-id="${b.id}"><div class="text">${esc(txt)}</div><div class="answer"><input placeholder="${esc(placeholder)}" autocomplete="off" inputmode="${cfg.input_mode==='numeric'?'numeric':'text'}"><button class="btn check">Potvrdit</button></div><div class="result muted"></div>${hintHTML(b)}</div>`;
  }
  if(t==='choice') {
    const opts=Array.isArray(cfg.options)?cfg.options:[];
@@ -45,7 +54,10 @@ function blockHTML(b){
  if(t==='sorting'){
    const items=Array.isArray(cfg.items)?cfg.items:[];
    const pending=!Array.isArray(cfg.correct_order)||!cfg.correct_order.length;
-   return `<div class="bubble task sorting" data-id="${b.id}"><div class="text">${esc(txt)}</div>${sortingRows(items)}<div class="sortingNote muted">${pending?'Správné pořadí zatím není v administraci potvrzené. Pro test lze pořadí uložit a pokračovat.':'Seřaďte položky a ověřte pořadí.'}</div><button class="btn sortCheck">${pending?'Uložit pořadí a pokračovat':'Ověřit pořadí'}</button><div class="result muted"></div>${hintHTML(b)}</div>`;
+   return `<div class="bubble task sorting" data-id="${b.id}"><div class="text">${esc(txt)}</div>${sortingRows(items,cfg.layout||'list')}<div class="sortingNote muted">${pending?'Správné pořadí zatím není v administraci potvrzené. Pro test lze pořadí uložit a pokračovat.':'Seřaďte položky a ověřte pořadí.'}</div><button class="btn sortCheck">${pending?'Uložit pořadí a pokračovat':'Ověřit pořadí'}</button><div class="result muted"></div>${hintHTML(b)}</div>`;
+ }
+ if(t==='logic_grid'){
+   return `<div class="bubble task logic-grid-task" data-id="${b.id}"><div class="text">${esc(txt)}</div>${logicGridHTML(cfg)}<button class="btn logicCheck">Ověřit tabulku</button><div class="result muted"></div>${hintHTML(b)}</div>`;
  }
  return `<div class="bubble"><div class="text">${esc(txt)}</div></div>`;
 }
@@ -240,7 +252,7 @@ function bindBlock(w,b){
      if(correct&&correct.length){
        const ok=order.length===correct.length&&order.every((x,i)=>norm(x)===norm(correct[i]));
        if(!ok){resultBox.textContent='Pořadí zatím není správně. Zkuste to znovu.';w.classList.add('bad');setTimeout(()=>w.classList.remove('bad'),250);return}
-       resultBox.textContent='Správně.';
+       resultBox.textContent=cfg.success_text||'Správně.';
        sortCheck.disabled=true;w.classList.add('solved');
        const saved=await persistProgress(b,'sorting_complete',{order});
        if(saved.accepted!==false)unlock();
@@ -250,6 +262,33 @@ function bindBlock(w,b){
        const saved=await persistProgress(b,'sorting_draft_complete',{order,pending_validation:true});
        if(saved.accepted!==false)unlock();
      }
+   };
+ }
+ const logicCheck=w.querySelector('.logicCheck');
+ if(logicCheck){
+   logicCheck.onclick=async()=>{
+     const values={};
+     w.querySelectorAll('.logicSelect').forEach(sel=>{
+       const row=sel.dataset.row,key=sel.dataset.key;
+       if(!values[row])values[row]={};
+       values[row][key]=sel.value;
+     });
+     const correct=cfg.correct||{};
+     const rows=Array.isArray(cfg.rows)?cfg.rows:[];
+     const cols=Array.isArray(cfg.columns)?cfg.columns:[];
+     const complete=rows.every(row=>cols.every(col=>values[row]?.[col.key]));
+     const ok=complete&&rows.every(row=>cols.every(col=>norm(values[row]?.[col.key])===norm(correct[row]?.[col.key])));
+     const resultBox=w.querySelector('.result');
+     if(!ok){
+       resultBox.textContent=complete?'Tabulka zatím není správně. Zkuste to znovu.':'Doplňte celou tabulku.';
+       if(complete){w.classList.add('bad');setTimeout(()=>w.classList.remove('bad'),250)}
+       return;
+     }
+     resultBox.textContent=cfg.success_text||'Správně.';
+     w.querySelectorAll('.logicSelect').forEach(x=>x.disabled=true);
+     logicCheck.disabled=true;w.classList.add('solved');
+     const saved=await persistProgress(b,'logic_grid_complete',{values});
+     if(saved.accepted!==false)unlock();
    };
  }
 }
