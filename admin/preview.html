@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0e1013">
+<title>Questplore — Náhled hry</title>
+<link rel="stylesheet" href="../styles.css?v=preview1">
+<style>
+body{min-height:100vh}
+.preview-ribbon{position:fixed;z-index:100;top:10px;right:10px;background:#e0b45c;color:#111;padding:6px 10px;border-radius:999px;font:700 11px/1 system-ui;box-shadow:0 4px 20px #0008}
+.preview-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.preview-toolbar button{font:inherit}
+.preview-empty{padding:24px;color:#aaa}
+.logicGridWrap{overflow-x:auto;margin:14px 0}
+.logicGrid{border-collapse:separate;border-spacing:0;width:100%;min-width:520px;border:1px solid #303640;border-radius:12px;overflow:hidden}
+.logicGrid th,.logicGrid td{padding:10px;border-right:1px solid #303640;border-bottom:1px solid #303640;text-align:left}
+.logicGrid tr:last-child th,.logicGrid tr:last-child td{border-bottom:0}
+.logicGrid th:last-child,.logicGrid td:last-child{border-right:0}
+.logicGrid thead th{background:#171b21;font-size:12px}
+.logicGrid tbody th{background:#12161b;white-space:nowrap}
+.logicGrid select{width:100%;min-width:120px;background:#0d1014;color:inherit;border:1px solid #39404a;border-radius:8px;padding:9px}
+.preview-stage-name{font-size:12px;color:#9ca3af;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="preview-ribbon">NÁHLED ADMINU</div>
+<div id="app"></div>
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const SUPABASE_URL='https://hnhyscllpnyzbxhrffph.supabase.co';
+const SUPABASE_KEY='sb_publishable_w0N986iN3rTUBQjDLogNhQ_BXcmNRWH';
+const supabase=createClient(SUPABASE_URL,SUPABASE_KEY);
+const root=document.getElementById('app');
+const qs=new URLSearchParams(location.search);
+const versionId=qs.get('version'),onlyBlockId=qs.get('block');
+const esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const norm=s=>(s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+function distance(a,b){a=norm(a);b=norm(b);const m=a.length,n=b.length,d=Array.from({length:m+1},()=>Array(n+1).fill(0));for(let i=0;i<=m;i++)d[i][0]=i;for(let j=0;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
+function fuzzy(a,b){const x=norm(a),y=norm(b);if(x===y)return true;if(/^\d+$/.test(x)||/^\d+$/.test(y))return false;if(Math.min(x.length,y.length)<4)return false;const lim=Math.max(x.length,y.length)>=9?2:1;return distance(x,y)<=lim}
+function phraseMatch(answer,value){const a=norm(answer).split(' ').filter(Boolean),v=norm(value).split(' ').filter(Boolean);if(a.length!==v.length)return false;return a.every((tok,i)=>/^\d+$/.test(tok)?tok===v[i]:fuzzy(tok,v[i]))}
+const main=c=>(c?.text??c?.prompt??'').toString().replace(/\\n/g,'\n');
+let game,version,translation,stages=[],transitions=[],stageIndex=0,choices={};
+
+function hintHTML(cfg){
+ const hints=Array.isArray(cfg?.hints)?cfg.hints:[];
+ if(!hints.length)return '';
+ return '<div class="hintbox" data-count="0"><button class="btn secondary hintBtn">Nápověda</button><div class="hintList"></div></div>';
+}
+function sortParts(item,i){if(typeof item==='string')return{id:item,label:item,detail:''};return{id:String(item?.id??item?.value??item?.label??('item-'+(i+1))),label:String(item?.label??item?.text??item?.id??''),detail:String(item?.detail??'')}}
+function sortingRows(items,layout='list'){return '<div class="sortList sort-'+esc(layout)+'">'+items.map((item,i)=>{const p=sortParts(item,i);return '<div class="sortRow" data-value="'+esc(p.id)+'"><span class="sortHandle">☰</span><span class="sortText"><strong>'+esc(p.label)+'</strong>'+(p.detail?'<small>'+esc(p.detail)+'</small>':'')+'</span><span class="sortMoves"><button type="button" class="sortUp" aria-label="Nahoru">↑</button><button type="button" class="sortDown" aria-label="Dolů">↓</button></span></div>'}).join('')+'</div>'}
+function logicGridHTML(cfg){const rows=Array.isArray(cfg.rows)?cfg.rows:[],cols=Array.isArray(cfg.columns)?cfg.columns:[];if(!rows.length||!cols.length)return '<div class="placeholder">Logická tabulka zatím není nastavená.</div>';return '<div class="logicGridWrap"><table class="logicGrid"><thead><tr><th></th>'+cols.map(c=>'<th>'+esc(c.label||c.key||'')+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr><th>'+esc(row)+'</th>'+cols.map((col,ci)=>'<td><select class="logicSelect" data-row="'+esc(row)+'" data-key="'+esc(col.key||ci)+'"><option value="">— vyberte —</option>'+(col.options||[]).map(o=>'<option value="'+esc(o)+'">'+esc(o)+'</option>').join('')+'</select></td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
+
+function blockHTML(b){
+ const c=b.content||{},cfg=b.config||{},t=b.block_type,txt=main(c);
+ if(t==='conditional_message'||t==='narrator_message')return '<div class="bubble narrator"><div class="text">'+esc(txt)+'</div></div>';
+ if(t==='instruction')return '<div class="bubble instruction"><div class="text">'+esc(txt)+'</div></div>';
+ if(t==='document')return '<div class="bubble"><div class="doc text">'+esc(txt)+'</div>'+(cfg.url?'<a class="btn secondary" target="_blank" rel="noopener" href="'+esc(cfg.url)+'">Otevřít dokument</a>':'')+'</div>';
+ if(t==='image')return '<div class="bubble">'+(cfg.url?'<img src="'+esc(cfg.url)+'" class="media">':'<div class="placeholder">Obrázek zatím není nahraný.</div>')+'</div>';
+ if(t==='confirm')return '<div class="bubble task"><div class="text">'+esc(txt)+'</div><button class="btn confirmbtn">'+esc(cfg.button_label||'Pokračovat')+'</button>'+hintHTML(cfg)+'</div>';
+ if(t==='text_answer'||t==='multi_term_answer')return '<div class="bubble task"><div class="text">'+esc(txt)+'</div><div class="answer"><input placeholder="'+esc(c.placeholder||cfg.placeholder||'Napište odpověď')+'" autocomplete="off"><button class="btn check">Potvrdit</button></div><div class="result muted"></div>'+hintHTML(cfg)+'</div>';
+ if(t==='choice'){const opts=Array.isArray(cfg.options)?cfg.options:[];return '<div class="bubble task"><div class="text">'+esc(txt)+'</div><div class="choices">'+opts.map((o,i)=>{const v=typeof o==='string'?o:(o.id??o.value??o.text??o.label??i),lab=typeof o==='string'?o:(o.text??o.label??String(v));return '<button class="btn secondary choice" data-value="'+esc(v)+'">'+esc(lab)+'</button>'}).join('')+'</div><div class="result muted"></div>'+hintHTML(cfg)+'</div>'}
+ if(t==='quiz'){const q=Array.isArray(cfg.questions)?cfg.questions:[];return '<div class="bubble task"><div class="text">'+esc(txt)+'</div>'+q.map((x,qi)=>'<div class="quizq" data-q="'+qi+'"><div class="text"><b>'+(qi+1)+'.</b> '+esc(x.question||'')+'</div><div class="choices">'+(x.options||[]).map((o,oi)=>'<button class="btn secondary quizopt" data-q="'+qi+'" data-i="'+oi+'">'+esc(o)+'</button>').join('')+'</div><div class="result muted"></div></div>').join('')+hintHTML(cfg)+'</div>'}
+ if(t==='gps'||t==='gps_confirmation')return '<div class="bubble gps"><div class="text">'+esc(txt)+'</div><button class="btn gpsbtn">JSME TU</button><div class="result muted"></div>'+hintHTML(cfg)+'</div>';
+ if(t==='photo')return '<div class="bubble photo"><div class="text">'+esc(txt)+'</div><label class="btn secondary">Vyfotit / vybrat fotografii<input class="photoInput" type="file" accept="image/*" hidden></label><div class="photoPreview"></div><div class="result muted"></div>'+hintHTML(cfg)+'</div>';
+ if(t==='sorting'){const items=Array.isArray(cfg.items)?cfg.items:[],pending=!Array.isArray(cfg.correct_order)||!cfg.correct_order.length;return '<div class="bubble task sorting"><div class="text">'+esc(txt)+'</div>'+sortingRows(items,cfg.layout||'list')+'<button class="btn sortCheck">'+(pending?'Uložit pořadí a pokračovat':'Ověřit pořadí')+'</button><div class="result muted"></div>'+hintHTML(cfg)+'</div>'}
+ if(t==='logic_grid')return '<div class="bubble task logic-grid-task"><div class="text">'+esc(txt)+'</div>'+logicGridHTML(cfg)+'<button class="btn logicCheck">Ověřit tabulku</button><div class="result muted"></div>'+hintHTML(cfg)+'</div>';
+ return '<div class="bubble"><div class="text">'+esc(txt)+'</div></div>';
+}
+
+function bind(w,b,onDone){
+ const cfg=b.config||{};
+ const hb=w.querySelector('.hintBtn');if(hb)hb.onclick=()=>{const box=w.querySelector('.hintbox'),list=w.querySelector('.hintList'),h=cfg.hints||[];let n=Number(box.dataset.count||0);if(n>=h.length)return;const e=document.createElement('div');e.className='hintItem';e.textContent=typeof h[n]==='string'?h[n]:(h[n]?.text||h[n]?.content||'');list.appendChild(e);n++;box.dataset.count=String(n);hb.textContent=n<h.length?'Další nápověda':'Nápovědy vyčerpány';if(n>=h.length)hb.disabled=true};
+ const ck=w.querySelector('.check');if(ck)ck.onclick=()=>{const val=w.querySelector('input').value,ans=cfg.answers||cfg.accepted_answers||[],ok=!ans.length||ans.some(a=>phraseMatch(a,val));const r=w.querySelector('.result');r.textContent=ok?'Správně.':'To není ono. Hledejte dál.';if(ok){ck.disabled=true;w.querySelector('input').disabled=true;onDone()}};
+ w.querySelectorAll('.choice').forEach(btn=>btn.onclick=()=>{choices[b.id]=btn.dataset.value;w.querySelectorAll('.choice').forEach(x=>x.disabled=true);btn.classList.add('selected');onDone()});
+ const cf=w.querySelector('.confirmbtn');if(cf)cf.onclick=()=>{cf.disabled=true;onDone()};
+ const qs=w.querySelectorAll('.quizq');if(qs.length){const solved=new Set();w.querySelectorAll('.quizopt').forEach(btn=>btn.onclick=()=>{const qi=Number(btn.dataset.q),oi=Number(btn.dataset.i),q=cfg.questions[qi],box=btn.closest('.quizq'),r=box.querySelector('.result');if(oi===Number(q.correct_index)){solved.add(qi);r.textContent='Správně.';box.querySelectorAll('button').forEach(x=>x.disabled=true);if(solved.size===cfg.questions.length)onDone()}else r.textContent='To není správně. Zkuste to znovu.'})}
+ const gps=w.querySelector('.gpsbtn');if(gps)gps.onclick=()=>{const r=w.querySelector('.result'),lat=cfg.latitude??cfg.lat,lng=cfg.longitude??cfg.lng,rad=Number(cfg.radius_m??cfg.radius??50);if(lat==null||lng==null){r.textContent='Náhled: cílové souřadnice zatím nejsou nastavené.';gps.disabled=true;onDone();return}if(!navigator.geolocation){r.textContent='Prohlížeč neumí zjistit polohu.';return}gps.disabled=true;r.textContent='Ověřuji polohu…';navigator.geolocation.getCurrentPosition(pos=>{const R=6371000,p1=pos.coords.latitude*Math.PI/180,p2=Number(lat)*Math.PI/180,dp=(Number(lat)-pos.coords.latitude)*Math.PI/180,dl=(Number(lng)-pos.coords.longitude)*Math.PI/180,a=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2,d=2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));if(d<=rad){r.textContent='Jsme na místě.';onDone()}else{r.textContent='To není ono. Hledejte dál.';gps.disabled=false}},()=>{r.textContent='Polohu se nepodařilo zjistit.';gps.disabled=false},{enableHighAccuracy:true,timeout:15000})};
+ const ph=w.querySelector('.photoInput');if(ph)ph.onchange=()=>{const f=ph.files?.[0];if(!f)return;const p=w.querySelector('.photoPreview');try{p.innerHTML='<img class="media photo-thumb" src="'+URL.createObjectURL(f)+'">'}catch{};w.querySelector('.result').textContent='Náhled fotografie — v testovacím režimu se neukládá.';onDone()};
+ const sl=w.querySelector('.sortList'),sc=w.querySelector('.sortCheck');if(sl&&sc){const rows=()=>[...sl.querySelectorAll('.sortRow')],move=(r,d)=>{if(d<0&&r.previousElementSibling)sl.insertBefore(r,r.previousElementSibling);if(d>0&&r.nextElementSibling)sl.insertBefore(r.nextElementSibling,r)};sl.querySelectorAll('.sortUp').forEach(b=>b.onclick=()=>move(b.closest('.sortRow'),-1));sl.querySelectorAll('.sortDown').forEach(b=>b.onclick=()=>move(b.closest('.sortRow'),1));sc.onclick=()=>{const order=rows().map(r=>r.dataset.value),correct=cfg.correct_order||[],r=w.querySelector('.result'),ok=!correct.length||(order.length===correct.length&&order.every((x,i)=>norm(x)===norm(correct[i])));r.textContent=ok?(cfg.success_text||'Správně.'):'Pořadí zatím není správně. Zkuste to znovu.';if(ok){sc.disabled=true;onDone()}}}
+ const lc=w.querySelector('.logicCheck');if(lc)lc.onclick=()=>{const vals={};w.querySelectorAll('.logicSelect').forEach(s=>{vals[s.dataset.row]??={};vals[s.dataset.row][s.dataset.key]=s.value});const rows=cfg.rows||[],cols=cfg.columns||[],ok=rows.every(r=>cols.every(c=>norm(vals[r]?.[c.key])===norm(cfg.correct?.[r]?.[c.key])));const out=w.querySelector('.result');out.textContent=ok?(cfg.success_text||'Správně.'):'Tabulka zatím není správně. Zkuste to znovu.';if(ok){w.querySelectorAll('select').forEach(x=>x.disabled=true);lc.disabled=true;onDone()}};
+}
+
+function condMatches(c={}){if(!c||!Object.keys(c).length)return true;const ch=c.choice;if(!ch)return false;const actual=choices[ch.block_id];if(Array.isArray(ch.one_of))return ch.one_of.some(v=>norm(v)===norm(actual));if(Object.prototype.hasOwnProperty.call(ch,'equals'))return norm(actual)===norm(ch.equals);if(Object.prototype.hasOwnProperty.call(ch,'not_equals'))return norm(actual)!==norm(ch.not_equals);return false}
+function nextStage(si){const st=stages[si],outs=transitions.filter(t=>t.from_stage_id===st.id).sort((a,b)=>Number(b.priority||0)-Number(a.priority||0));for(const t of outs){if(condMatches(t.condition||{})){const i=stages.findIndex(s=>s.id===t.to_stage_id);if(i>=0)return i}}return -1}
+
+function shell(){root.innerHTML='<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><div class="preview-toolbar"><div class="progress"></div><button id="restart" class="archiveBtn" type="button">Restart</button><button id="close" class="exitGameBtn" type="button">Zavřít náhled</button></div></div><section class="case"><div class="casehead"><h1>'+esc(translation?.title||game?.name||'Náhled')+'</h1></div><div id="feed" class="feed chat"></div><div id="continueBar" class="continuebar hidden"><button id="continueBtn" class="btn">Pokračovat</button></div></section></div>';document.getElementById('close').onclick=()=>window.close();document.getElementById('restart').onclick=()=>{choices={};stageIndex=0;renderStage()}}
+function renderStage(){
+ const feed=document.getElementById('feed');feed.innerHTML='';document.getElementById('continueBar').classList.add('hidden');const st=stages[stageIndex];document.querySelector('.progress').textContent=(stageIndex+1)+' / '+stages.length;const label=document.createElement('div');label.className='preview-stage-name';label.textContent='Náhled části: '+st.internal_name;feed.appendChild(label);
+ const blocks=st.blocks||[];let i=0;
+ const next=()=>{if(i>=blocks.length){const ni=nextStage(stageIndex),bar=document.getElementById('continueBar'),btn=document.getElementById('continueBtn');bar.classList.remove('hidden');btn.textContent=ni>=0?'Pokračovat':'Konec hry';btn.onclick=()=>{if(ni>=0){stageIndex=ni;renderStage()}else alert('Konec hry — náhled.')} ;return}const b=blocks[i++];const w=document.createElement('div');w.className='reveal shown';w.innerHTML=blockHTML(b);feed.appendChild(w);const interactive=['text_answer','multi_term_answer','choice','quiz','sorting','logic_grid','gps','gps_confirmation','photo','confirm'].includes(b.block_type);bind(w,b,()=>setTimeout(next,180));if(!interactive)setTimeout(next,80)};
+ next();
+}
+
+async function load(){
+ if(!versionId){root.innerHTML='<div class="preview-empty">Chybí ID verze.</div>';return}
+ const {data:{session}}=await supabase.auth.getSession();if(!session){root.innerHTML='<div class="preview-empty">Pro náhled se nejdřív přihlaste do Questplore Adminu.</div>';return}
+ const {data:v,error:ve}=await supabase.from('game_versions').select('*').eq('id',versionId).single();if(ve){root.innerHTML='<div class="preview-empty">Verzi se nepodařilo načíst.</div>';return}version=v;
+ const [{data:g},{data:gt},{data:ss},{data:tt}]=await Promise.all([
+  supabase.from('games').select('*').eq('id',v.game_id).single(),
+  supabase.from('game_translations').select('*').eq('game_version_id',versionId).eq('locale','cs').maybeSingle(),
+  supabase.from('stages').select('*').eq('game_version_id',versionId).order('position'),
+  supabase.from('transitions').select('*').eq('game_version_id',versionId)
+ ]);
+ game=g;translation=gt;stages=ss||[];transitions=tt||[];
+ if(!stages.length){root.innerHTML='<div class="preview-empty">Tato verze zatím nemá žádné části.</div>';return}
+ const ids=stages.map(s=>s.id);const {data:bb}=await supabase.from('blocks').select('id,stage_id,block_type,position,config,block_translations(locale,content)').in('stage_id',ids).order('position');const blocks=bb||[];
+ for(const s of stages)s.blocks=blocks.filter(b=>b.stage_id===s.id).map(b=>({...b,content:b.block_translations?.find(t=>t.locale==='cs')?.content||b.block_translations?.[0]?.content||{}}));
+ shell();
+ if(onlyBlockId){
+   const b=blocks.find(x=>x.id===onlyBlockId);const st=stages.find(s=>s.id===b?.stage_id);if(!b||!st){root.querySelector('#feed').innerHTML='<div class="preview-empty">Blok nebyl nalezen.</div>';return}
+   stageIndex=stages.findIndex(s=>s.id===st.id);document.querySelector('.progress').textContent='Blok';const feed=document.getElementById('feed');feed.innerHTML='<div class="preview-stage-name">Náhled bloku · '+esc(st.internal_name)+'</div>';const w=document.createElement('div');w.className='reveal shown';const full=st.blocks.find(x=>x.id===onlyBlockId);w.innerHTML=blockHTML(full);feed.appendChild(w);bind(w,full,()=>{const r=w.querySelector('.result');if(r&&!r.textContent)r.textContent='Blok dokončen — náhled.'});document.getElementById('restart').onclick=()=>location.reload();
+ }else renderStage();
+}
+load();
+</script>
+</body>
+</html>
