@@ -21,7 +21,8 @@ function sortItemParts(item,i){
  return {id:String(item?.id??item?.value??item?.label??`item-${i+1}`),label:String(item?.label??item?.text??item?.id??''),detail:String(item?.detail??'')};
 }
 function sortingRows(items,layout='list'){
- return `<div class="sortList sort-${esc(layout)}">${items.map((item,i)=>{const p=sortItemParts(item,i);return `<div class="sortRow" data-value="${esc(p.id)}"><span class="sortHandle">☰</span><span class="sortText"><strong>${esc(p.label)}</strong>${p.detail?`<small>${esc(p.detail)}</small>`:''}</span><span class="sortMoves"><button type="button" class="sortUp" aria-label="Posunout nahoru">↑</button><button type="button" class="sortDown" aria-label="Posunout dolů">↓</button></span></div>`}).join('')}</div>`;
+ const columns=layout==='columns';
+ return `<div class="sortList sort-${esc(layout)}">${items.map((item,i)=>{const p=sortItemParts(item,i);return `<div class="sortRow" data-value="${esc(p.id)}">${columns?`<span class="sortText"><strong>${esc(p.label)}</strong>${p.detail?`<small>${esc(p.detail)}</small>`:''}</span><span class="sortColumnControls"><button type="button" class="sortUp" aria-label="Posunout vlevo">←</button><span class="sortHandle" role="button" tabindex="0" aria-label="Přetáhnout sloupec">⠿</span><button type="button" class="sortDown" aria-label="Posunout vpravo">→</button></span>`:`<span class="sortHandle" role="button" tabindex="0" aria-label="Přetáhnout položku">⠿</span><span class="sortText"><strong>${esc(p.label)}</strong>${p.detail?`<small>${esc(p.detail)}</small>`:''}</span><span class="sortMoves"><button type="button" class="sortUp" aria-label="Posunout nahoru">↑</button><button type="button" class="sortDown" aria-label="Posunout dolů">↓</button></span>`}</div>`}).join('')}</div>`;
 }
 function logicGridHTML(cfg){
  const rows=Array.isArray(cfg.rows)?cfg.rows:[],cols=Array.isArray(cfg.columns)?cfg.columns:[];
@@ -245,6 +246,26 @@ function bindBlock(w,b){
    };
    sortList.querySelectorAll('.sortUp').forEach(btn=>btn.onclick=()=>move(btn.closest('.sortRow'),-1));
    sortList.querySelectorAll('.sortDown').forEach(btn=>btn.onclick=()=>move(btn.closest('.sortRow'),1));
+   sortList.querySelectorAll('.sortHandle').forEach(handle=>{
+     handle.onpointerdown=e=>{
+       const row=handle.closest('.sortRow');if(!row)return;
+       e.preventDefault();row.classList.add('dragging');handle.setPointerCapture?.(e.pointerId);
+       const onMove=ev=>{
+         const target=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.sortRow');
+         if(!target||target===row||target.parentElement!==sortList)return;
+         const rect=target.getBoundingClientRect();
+         if(sortList.classList.contains('sort-columns')){
+           if(ev.clientX<rect.left+rect.width/2)sortList.insertBefore(row,target);
+           else sortList.insertBefore(row,target.nextElementSibling);
+         }else{
+           if(ev.clientY<rect.top+rect.height/2)sortList.insertBefore(row,target);
+           else sortList.insertBefore(row,target.nextElementSibling);
+         }
+       };
+       const onUp=ev=>{row.classList.remove('dragging');handle.releasePointerCapture?.(ev.pointerId);handle.onpointermove=null;handle.onpointerup=null;handle.onpointercancel=null};
+       handle.onpointermove=onMove;handle.onpointerup=onUp;handle.onpointercancel=onUp;
+     };
+   });
    sortCheck.onclick=async()=>{
      const order=rows().map(r=>r.dataset.value);
      const correct=Array.isArray(cfg.correct_order)?cfg.correct_order:null;
