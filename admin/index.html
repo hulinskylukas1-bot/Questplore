@@ -45,6 +45,9 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
 .customers-toolbar{display:flex;gap:10px;margin-bottom:16px}.customers-toolbar input{flex:1}
 .customers-list{display:grid;gap:10px}.customer-card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:16px}.customer-top{display:flex;justify-content:space-between;gap:12px}.customer-card h3{margin:0 0 5px}.customer-meta{color:var(--muted);font-size:13px;line-height:1.5}.customer-note{margin-top:10px;color:#d6dbd5;font-size:13px;white-space:pre-wrap}.customer-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .customer-form-dialog{width:min(720px,calc(100% - 32px))}
+.invite-card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.invite-row{display:flex;gap:8px}.invite-row input{flex:1}.invite-link-box{display:flex;gap:8px;align-items:center}.invite-link-box input{flex:1;font-size:12px}
+.invite-help{color:var(--muted);font-size:13px;line-height:1.5}
 
 
 @media(max-width:850px){.dashboard-grid,.game-cards{grid-template-columns:1fr}.dashboard-hero,.email-headline{align-items:flex-start;flex-direction:column}.dashboard-top,.email-top{align-items:flex-start;flex-direction:column}.dashboard-actions,.email-actions{width:100%;justify-content:flex-end}.email-form-dialog .form-grid.two{grid-template-columns:1fr}}
@@ -68,6 +71,13 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
         <label>Nové heslo<input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></label>
         <label>Zopakovat heslo<input id="newPasswordRepeat" type="password" autocomplete="new-password" minlength="8" required></label>
         <button type="submit">Nastavit nové heslo</button>
+      </form>
+      <form id="inviteSignupForm" class="hidden">
+        <p class="muted" id="inviteIntro">Vytvoření administrátorského účtu.</p>
+        <label>E-mail<input id="inviteEmail" type="email" readonly></label>
+        <label>Heslo<input id="invitePassword" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label>Zopakovat heslo<input id="invitePasswordRepeat" type="password" autocomplete="new-password" minlength="8" required></label>
+        <button type="submit">Vytvořit účet</button>
       </form>
       <div id="loginSuccess" class="success"></div>
       <div id="loginError" class="error"></div>
@@ -123,6 +133,22 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
           <h2>Databáze zákazníků</h2>
           <p>Kontakty a základní poznámky k zákazníkům. Později sem doplníme historii objednávek, hraných her a marketingové souhlasy.</p>
           <div class="card-actions"><button id="openCustomersBtn">Otevřít databázi</button></div>
+        </section>
+        <section class="invite-card">
+          <div class="eyebrow">PŘÍSTUPY</div>
+          <h2 style="margin:0">Správa administrátorů</h2>
+          <p class="invite-help">Vytvořte bezpečnou pozvánku pro dalšího člověka, který má mít přístup do Questplore Adminu.</p>
+          <div class="invite-row">
+            <input id="adminInviteEmail" type="email" placeholder="kolega@example.com">
+            <button id="createAdminInviteBtn">Vytvořit pozvánku</button>
+          </div>
+          <div id="adminInviteResult" class="hidden">
+            <div class="invite-link-box">
+              <input id="adminInviteLink" readonly>
+              <button id="copyAdminInviteBtn" class="secondary">Kopírovat</button>
+            </div>
+            <div class="invite-help">Pozvánka platí 14 dní a je určena jen pro zadaný e-mail.</div>
+          </div>
         </section>
       </div>
     </main>
@@ -417,6 +443,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SUPABASE_URL = 'https://hnhyscllpnyzbxhrffph.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_w0N986iN3rTUBQjDLogNhQ_BXcmNRWH';
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const inviteToken = new URLSearchParams(location.search).get('invite');
 const $ = id => document.getElementById(id);
 
 let games=[], game=null, versions=[], version=null, gameTranslation=null;
@@ -443,6 +470,12 @@ async function ensureAdmin(){
 async function showSession(session){
   if(!session){$('loginView').classList.remove('hidden');$('appView').classList.add('hidden');return}
   try{
+    if(inviteToken){
+      const {data:claimed,error:claimError}=await supabase.rpc('claim_admin_invite',{p_token:inviteToken});
+      if(claimError)throw claimError;
+      if(!claimed)throw new Error('Pozvánku se nepodařilo aktivovat pro tento účet.');
+      const u=new URL(location.href);u.searchParams.delete('invite');history.replaceState({},document.title,u.pathname+u.search+u.hash);
+    }
     await ensureAdmin();
     const email=session.user.email||'';
     $('userEmail').textContent=email;$('dashboardUserEmail').textContent=email;$('emailUserEmail').textContent=email;$('statsUserEmail').textContent=email;$('customersUserEmail').textContent=email;
@@ -464,6 +497,32 @@ function showPasswordRecovery(){
   $('loginError').textContent='';
   $('loginSuccess').textContent='Zadejte nové heslo pro administrátorský účet.';
 }
+
+
+async function setupInviteMode(){
+  if(!inviteToken)return false;
+  const {data,error}=await supabase.rpc('admin_invite_info',{p_token:inviteToken});
+  if(error||!data?.length||!data[0].valid){
+    $('loginError').textContent='Pozvánka je neplatná nebo už vypršela.';
+    return true;
+  }
+  $('loginForm').classList.add('hidden');$('forgotPasswordBtn').classList.add('hidden');$('passwordResetForm').classList.add('hidden');
+  $('inviteSignupForm').classList.remove('hidden');$('inviteEmail').value=data[0].email||'';
+  $('loginSuccess').textContent='Pozvánka je platná. Nastavte si heslo pro administrátorský účet.';
+  return true;
+}
+
+$('inviteSignupForm').addEventListener('submit',async e=>{
+  e.preventDefault();$('loginError').textContent='';$('loginSuccess').textContent='';
+  const p1=$('invitePassword').value,p2=$('invitePasswordRepeat').value,email=$('inviteEmail').value.trim();
+  if(p1.length<8){$('loginError').textContent='Heslo musí mít alespoň 8 znaků.';return}
+  if(p1!==p2){$('loginError').textContent='Hesla se neshodují.';return}
+  const redirectTo=location.origin+location.pathname+'?invite='+encodeURIComponent(inviteToken);
+  const {data,error}=await supabase.auth.signUp({email,password:p1,options:{emailRedirectTo:redirectTo}});
+  if(error){$('loginError').textContent='Účet se nepodařilo vytvořit: '+error.message;return}
+  if(data.session){await showSession(data.session);return}
+  $('loginSuccess').textContent='Účet byl založen. Zkontrolujte e-mail a potvrďte registraci odkazem, který vám přišel.';
+});
 
 $('loginForm').addEventListener('submit',async e=>{
   e.preventDefault();$('loginError').textContent='';$('loginSuccess').textContent='';
@@ -556,6 +615,20 @@ $('dashboardNewGameBtn').onclick=()=>openGameDialog('create');
 $('openEmailsBtn').onclick=()=>showEmailTemplates().catch(e=>alert(errText(e)));
 $('openStatsBtn').onclick=()=>showStats().catch(e=>alert(errText(e)));
 $('openCustomersBtn').onclick=()=>showCustomers().catch(e=>alert(errText(e)));
+$('createAdminInviteBtn').onclick=async()=>{
+  const email=$('adminInviteEmail').value.trim();
+  if(!email){alert('Zadejte e-mail kolegy.');return}
+  const btn=$('createAdminInviteBtn');btn.disabled=true;btn.textContent='Vytvářím…';
+  const {data,error}=await supabase.rpc('create_admin_invite',{p_email:email});
+  btn.disabled=false;btn.textContent='Vytvořit pozvánku';
+  if(error){alert('Pozvánku se nepodařilo vytvořit: '+errText(error));return}
+  const link=location.origin+location.pathname+'?invite='+encodeURIComponent(data);
+  $('adminInviteLink').value=link;$('adminInviteResult').classList.remove('hidden');toast('Pozvánka vytvořena');
+};
+$('copyAdminInviteBtn').onclick=async()=>{
+  try{await navigator.clipboard.writeText($('adminInviteLink').value);toast('Odkaz zkopírován')}
+  catch{$('adminInviteLink').select();document.execCommand('copy');toast('Odkaz zkopírován')}
+};
 $('statsHomeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
 $('customersHomeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
 $('reloadStatsBtn').onclick=()=>showStats().catch(e=>alert(errText(e)));
@@ -1030,6 +1103,7 @@ $('deleteStageBtn').onclick=async()=>{if(!selectedStage||isReadOnly()||!confirm(
 const recoveryInUrl=location.hash.includes('type=recovery')||new URLSearchParams(location.search).get('type')==='recovery';
 const {data:{session}}=await supabase.auth.getSession();
 if(recoveryInUrl)showPasswordRecovery();
+else if(!session&&inviteToken)await setupInviteMode();
 else await showSession(session);
 
 </script>
