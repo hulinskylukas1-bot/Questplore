@@ -25,6 +25,18 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
 
 .button-link{display:inline-flex;align-items:center;text-decoration:none;border-radius:9px;padding:10px 14px;background:var(--accent);color:#111;font-weight:700}
 
+
+.dashboard-view,.email-view{min-height:100vh;background:var(--bg);color:var(--text)}
+.dashboard-top,.email-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--line);background:#12151a;position:sticky;top:0;z-index:20}
+.dashboard-actions,.email-actions{display:flex;align-items:center;gap:8px}.dashboard-actions span,.email-actions span{color:var(--muted);font-size:12px}
+.dashboard-main,.email-main{max-width:1180px;margin:0 auto;padding:34px 24px 60px}
+.dashboard-hero{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:26px}.dashboard-hero h1{font-size:34px;margin:4px 0 6px}.dashboard-hero p{margin:0;color:var(--muted)}
+.dashboard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.dashboard-card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:20px;min-height:180px;display:flex;flex-direction:column;gap:10px}.dashboard-card h2{margin:0;font-size:22px}.dashboard-card p{color:var(--muted);margin:0;line-height:1.5}.dashboard-card .card-actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}.dashboard-card.feature{border-color:#5e4a28;background:linear-gradient(180deg,#201b13,#171a1f)}
+.game-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.game-card{border:1px solid var(--line);background:#111419;border-radius:13px;padding:15px;cursor:pointer;text-align:left;color:var(--text);font-weight:400}.game-card:hover{border-color:#5e4a28;background:#171a1f}.game-card strong{display:block;font-size:16px;margin-bottom:4px}.game-meta{color:var(--muted);font-size:12px}
+.email-headline{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:22px}.email-headline h1{margin:4px 0 0;font-size:32px}.email-list{display:grid;gap:12px}.email-card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:16px}.email-card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.email-card h3{margin:0 0 4px}.email-card .subject{margin:10px 0;color:#d8ddd7}.email-card .desc{color:var(--muted);font-size:13px}.status-pill{border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;background:#2a2518;color:#e8c97d}.status-pill.active{background:#17301f;color:#9de0ad}.email-card-actions{display:flex;gap:8px;margin-top:12px}
+.email-form-dialog{width:min(760px,calc(100% - 32px))}.email-form-dialog textarea#emailBodyInput{min-height:260px}.email-form-dialog .form-grid.two{grid-template-columns:1fr 1fr}
+.header-home{margin-right:4px}
+@media(max-width:850px){.dashboard-grid,.game-cards{grid-template-columns:1fr}.dashboard-hero,.email-headline{align-items:flex-start;flex-direction:column}.dashboard-top,.email-top{align-items:flex-start;flex-direction:column}.dashboard-actions,.email-actions{width:100%;justify-content:flex-end}.email-form-dialog .form-grid.two{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -51,9 +63,65 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
     </section>
   </main>
 
+
+  <section id="dashboardView" class="dashboard-view hidden">
+    <div class="dashboard-top">
+      <div><div class="eyebrow">QUESTPLORE</div><strong>Admin</strong></div>
+      <div class="dashboard-actions">
+        <span id="dashboardUserEmail"></span>
+        <button id="dashboardAccountBtn" class="secondary">Účet</button>
+        <button id="dashboardLogoutBtn" class="secondary">Odhlásit</button>
+      </div>
+    </div>
+    <main class="dashboard-main">
+      <div class="dashboard-hero">
+        <div>
+          <div class="eyebrow">PŘEHLED</div>
+          <h1>Co chcete upravovat?</h1>
+          <p>Vyberte hru nebo přejděte do správy zákaznických e-mailů.</p>
+        </div>
+        <button id="dashboardNewGameBtn">+ Nová hra</button>
+      </div>
+      <div class="dashboard-grid">
+        <section class="dashboard-card">
+          <div class="eyebrow">HRY</div>
+          <h2>Editor her</h2>
+          <p>Otevřete konkrétní hru a upravujte její části, bloky, verze a testovací náhledy.</p>
+          <div id="dashboardGames" class="game-cards"></div>
+        </section>
+        <section class="dashboard-card feature">
+          <div class="eyebrow">KOMUNIKACE</div>
+          <h2>E-maily zákazníkům</h2>
+          <p>Tvořte a spravujte šablony e-mailů, které později napojíme na nákup, herní kódy a další zákaznické události.</p>
+          <div class="card-actions"><button id="openEmailsBtn">Otevřít e-maily</button></div>
+        </section>
+      </div>
+    </main>
+  </section>
+
+  <section id="emailView" class="email-view hidden">
+    <div class="email-top">
+      <div><div class="eyebrow">QUESTPLORE</div><strong>E-maily zákazníkům</strong></div>
+      <div class="email-actions">
+        <span id="emailUserEmail"></span>
+        <button id="emailHomeBtn" class="secondary">← Přehled</button>
+        <button id="emailAccountBtn" class="secondary">Účet</button>
+        <button id="emailLogoutBtn" class="secondary">Odhlásit</button>
+      </div>
+    </div>
+    <main class="email-main">
+      <div class="email-headline">
+        <div><div class="eyebrow">ŠABLONY</div><h1>Zákaznické e-maily</h1></div>
+        <button id="newEmailTemplateBtn">+ Nový e-mail</button>
+      </div>
+      <div class="tipbox" style="margin:0 0 18px">Zde zatím připravujeme obsah šablon. Samotné automatické odesílání napojíme později na nákupní a herní události.</div>
+      <div id="emailTemplatesList" class="email-list"></div>
+    </main>
+  </section>
+
   <div id="appView" class="app hidden">
     <header>
-      <div class="header-brand"><div class="eyebrow">QUESTPLORE</div><strong>Editor her · v1.0</strong></div>
+      <div class="header-brand"><div class="eyebrow">QUESTPLORE</div><strong>Editor her · v1.0</strong><div style="margin-top:8px"><button id="homeBtn" class="secondary header-home">← Přehled</button></div></div>
       <div class="header-game-controls">
         <label class="compact">Hra<select id="gameSelect"></select></label>
         <button id="newGameBtn" class="secondary">+ Nová hra</button>
@@ -174,6 +242,30 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
     </div>
   </dialog>
 
+
+  <dialog id="emailTemplateDialog" class="email-form-dialog">
+    <form class="dialog-card" id="emailTemplateForm">
+      <div class="eyebrow" id="emailDialogEyebrow">NOVÝ E-MAIL</div>
+      <h2 id="emailDialogTitle">Vytvořit šablonu</h2>
+      <input id="emailTemplateId" type="hidden">
+      <div class="form-grid two">
+        <label>Interní název<input id="emailInternalNameInput" required placeholder="Např. Potvrzení objednávky"></label>
+        <label>Klíč šablony<input id="emailTemplateKeyInput" required placeholder="order_confirmation"></label>
+      </div>
+      <label>Účel / interní poznámka<textarea id="emailDescriptionInput" rows="2"></textarea></label>
+      <div class="form-grid two">
+        <label>Předmět e-mailu<input id="emailSubjectInput" required placeholder="Vaše hra Questplore je připravena"></label>
+        <label>Stav<select id="emailStatusInput"><option value="draft">Koncept</option><option value="active">Aktivní</option></select></label>
+      </div>
+      <label>Text e-mailu<textarea id="emailBodyInput" required placeholder="Dobrý den,…"></textarea></label>
+      <div class="tipbox">Můžete používat běžný text. Proměnné jako jméno zákazníka, název hry nebo herní kód doplníme, až budeme e-maily napojovat na objednávky.</div>
+      <div class="dialog-actions">
+        <button type="button" id="cancelEmailTemplateBtn" class="secondary">Zrušit</button>
+        <button type="submit">Uložit e-mail</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="addStageDialog">
     <form class="dialog-card" id="addStageForm">
       <div class="eyebrow">NOVÁ ČÁST</div>
@@ -230,6 +322,7 @@ const $ = id => document.getElementById(id);
 let games=[], game=null, versions=[], version=null, gameTranslation=null;
 let stages=[], selectedStage=null, currentBlocks=[], transitions=[], allChoiceBlocks=[];
 let gameDialogMode='create';
+let emailTemplates=[];
 
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 function errText(e){return e?.message||String(e)}
@@ -250,9 +343,10 @@ async function showSession(session){
   if(!session){$('loginView').classList.remove('hidden');$('appView').classList.add('hidden');return}
   try{
     await ensureAdmin();
-    $('userEmail').textContent=session.user.email||'';
-    $('loginView').classList.add('hidden');$('appView').classList.remove('hidden');
-    await loadGames();
+    const email=session.user.email||'';
+    $('userEmail').textContent=email;$('dashboardUserEmail').textContent=email;$('emailUserEmail').textContent=email;
+    $('loginView').classList.add('hidden');
+    await showDashboard();
   }catch(e){
     await supabase.auth.signOut();
     $('loginError').textContent=errText(e);
@@ -309,9 +403,15 @@ supabase.auth.onAuthStateChange((event)=>{
   if(event==='PASSWORD_RECOVERY')showPasswordRecovery();
 });
 
-$('logoutBtn').onclick=async()=>{await supabase.auth.signOut();location.reload()};
+async function logoutAdmin(){await supabase.auth.signOut();location.reload()}
+$('logoutBtn').onclick=logoutAdmin;
+$('dashboardLogoutBtn').onclick=logoutAdmin;
+$('emailLogoutBtn').onclick=logoutAdmin;
 
-$('accountBtn').onclick=()=>{$('accountMessage').textContent='';$('newEmail').value='';$('accountDialog').showModal()};
+function openAccountDialog(){$('accountMessage').textContent='';$('newEmail').value='';$('accountDialog').showModal()}
+$('accountBtn').onclick=openAccountDialog;
+$('dashboardAccountBtn').onclick=openAccountDialog;
+$('emailAccountBtn').onclick=openAccountDialog;
 $('cancelAccountBtn').onclick=()=>$('accountDialog').close();
 $('accountForm').addEventListener('submit',async e=>{
   e.preventDefault();const newEmail=$('newEmail').value.trim();$('accountMessage').textContent='Ukládám…';
@@ -321,6 +421,74 @@ $('accountForm').addEventListener('submit',async e=>{
   if(effective.toLowerCase()===newEmail.toLowerCase()){$('userEmail').textContent=effective;$('accountMessage').textContent='E-mail byl změněn na '+effective+'.'}
   else $('accountMessage').textContent='Žádost o změnu byla odeslána. Dokonči potvrzení podle nastavení Supabase.';
 });
+
+
+function hideAdminViews(){
+  $('dashboardView').classList.add('hidden');$('emailView').classList.add('hidden');$('appView').classList.add('hidden');
+}
+async function showDashboard(){
+  hideAdminViews();$('dashboardView').classList.remove('hidden');
+  const {data,error}=await supabase.from('games').select('id,name,city,status,estimated_duration_min,estimated_duration_max,created_at').order('created_at');
+  if(error)throw error;
+  games=data||[];
+  const host=$('dashboardGames');host.innerHTML='';
+  if(!games.length){host.innerHTML='<div class="muted">Zatím není založena žádná hra.</div>';return}
+  games.forEach(g=>{
+    const card=document.createElement('button');card.type='button';card.className='game-card';
+    const duration=g.estimated_duration_min||g.estimated_duration_max?`${g.estimated_duration_min??'?'}–${g.estimated_duration_max??'?'} min`:'délka neuvedena';
+    card.innerHTML=`<strong>${esc(g.name)}</strong><div class="game-meta">${esc(g.city||'Město neuvedeno')} · ${esc(duration)} · ${esc(g.status||'draft')}</div>`;
+    card.onclick=()=>openGameFromDashboard(g.id);
+    host.appendChild(card);
+  });
+}
+async function openGameFromDashboard(gameId){
+  hideAdminViews();$('appView').classList.remove('hidden');
+  await loadGames(gameId);
+}
+$('homeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
+$('emailHomeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
+$('dashboardNewGameBtn').onclick=()=>openGameDialog('create');
+$('openEmailsBtn').onclick=()=>showEmailTemplates().catch(e=>alert(errText(e)));
+
+async function showEmailTemplates(){
+  hideAdminViews();$('emailView').classList.remove('hidden');
+  const {data,error}=await supabase.from('email_templates').select('*').order('created_at');
+  if(error)throw error;emailTemplates=data||[];renderEmailTemplates();
+}
+function renderEmailTemplates(){
+  const host=$('emailTemplatesList');host.innerHTML='';
+  if(!emailTemplates.length){host.innerHTML='<div class="empty" style="height:240px">Zatím tu není žádná e-mailová šablona.</div>';return}
+  emailTemplates.forEach(t=>{
+    const card=document.createElement('article');card.className='email-card';
+    card.innerHTML=`<div class="email-card-top"><div><h3>${esc(t.internal_name)}</h3><div class="desc">${esc(t.description||t.template_key)}</div></div><span class="status-pill ${t.status==='active'?'active':''}">${t.status==='active'?'AKTIVNÍ':'KONCEPT'}</span></div><div class="subject"><strong>Předmět:</strong> ${esc(t.subject||'—')}</div><div class="email-card-actions"><button class="secondary edit-email">Upravit</button><button class="danger delete-email">Smazat</button></div>`;
+    card.querySelector('.edit-email').onclick=()=>openEmailTemplateDialog(t);
+    card.querySelector('.delete-email').onclick=()=>deleteEmailTemplate(t);
+    host.appendChild(card);
+  });
+}
+function openEmailTemplateDialog(t=null){
+  $('emailTemplateId').value=t?.id||'';
+  $('emailDialogEyebrow').textContent=t?'UPRAVIT E-MAIL':'NOVÝ E-MAIL';$('emailDialogTitle').textContent=t?.internal_name||'Vytvořit šablonu';
+  $('emailInternalNameInput').value=t?.internal_name||'';$('emailTemplateKeyInput').value=t?.template_key||'';$('emailTemplateKeyInput').disabled=!!t;
+  $('emailDescriptionInput').value=t?.description||'';$('emailSubjectInput').value=t?.subject||'';$('emailStatusInput').value=t?.status||'draft';$('emailBodyInput').value=t?.body||'';
+  $('emailTemplateDialog').showModal();
+}
+$('newEmailTemplateBtn').onclick=()=>openEmailTemplateDialog();
+$('cancelEmailTemplateBtn').onclick=()=>$('emailTemplateDialog').close();
+$('emailTemplateForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=$('emailTemplateId').value;
+  const payload={internal_name:$('emailInternalNameInput').value.trim(),template_key:slugify($('emailTemplateKeyInput').value).replace(/-/g,'_'),description:$('emailDescriptionInput').value.trim()||null,subject:$('emailSubjectInput').value.trim(),body:$('emailBodyInput').value,status:$('emailStatusInput').value,locale:'cs'};
+  if(!payload.template_key){alert('Zadejte klíč šablony.');return}
+  const q=id?supabase.from('email_templates').update(payload).eq('id',id):supabase.from('email_templates').insert(payload);
+  const {error}=await q;if(error){alert('E-mail se nepodařilo uložit: '+errText(error));return}
+  $('emailTemplateDialog').close();toast('E-mail uložen');await showEmailTemplates();
+});
+async function deleteEmailTemplate(t){
+  if(!confirm(`Opravdu smazat e-mailovou šablonu „${t.internal_name}“?`))return;
+  const {error}=await supabase.from('email_templates').delete().eq('id',t.id);if(error){alert(errText(error));return}
+  toast('E-mail smazán');await showEmailTemplates();
+}
 
 async function loadGames(preferredGameId=null,preferredVersionId=null){
   const {data,error}=await supabase.from('games').select('*').order('created_at');
