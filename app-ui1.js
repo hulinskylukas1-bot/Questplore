@@ -24,7 +24,7 @@ function sortingRows(items,layout='list'){
  const columns=layout==='columns';
  const vertical=s=>String(s||'').split('').map(ch=>`<span style="display:block;line-height:1.05">${esc(ch)}</span>`).join('');
  const listStyle=columns?` style="display:grid;grid-template-columns:repeat(${Math.max(items.length,1)},minmax(0,1fr));gap:5px;overflow:visible;width:100%"`:'';
- return `<div class="sortList sort-${esc(layout)}"${listStyle}>${items.map((item,i)=>{const p=sortItemParts(item,i);return `<div class="sortRow" data-value="${esc(p.id)}"${columns?' style="min-width:0;width:auto;max-width:none;padding:8px 3px 6px"':''}>${columns?`<span class="sortText" style="display:flex;flex-direction:column;align-items:center;min-width:0"><strong style="display:flex;flex-direction:column;align-items:center;font-size:13px">${vertical(p.label)}</strong>${p.detail?`<small style="display:flex;flex-direction:column;align-items:center;font-size:15px;line-height:1.05;letter-spacing:0;white-space:normal">${vertical(p.detail)}</small>`:''}</span><span class="sortColumnControls"><button type="button" class="sortUp" aria-label="Posunout vlevo">←</button><span class="sortHandle" role="button" tabindex="0" aria-label="Přetáhnout sloupec">⠿</span><button type="button" class="sortDown" aria-label="Posunout vpravo">→</button></span>`:`<span class="sortHandle" role="button" tabindex="0" aria-label="Přetáhnout položku">⠿</span><span class="sortText"><strong>${esc(p.label)}</strong>${p.detail?`<small>${esc(p.detail)}</small>`:''}</span><span class="sortMoves"><button type="button" class="sortUp" aria-label="Posunout nahoru">↑</button><button type="button" class="sortDown" aria-label="Posunout dolů">↓</button></span>`}</div>`}).join('')}</div>`;
+ return `<div class="sortList sort-${esc(layout)}"${listStyle}>${items.map((item,i)=>{const p=sortItemParts(item,i);return `<div class="sortRow" data-value="${esc(p.id)}"${columns?' style="min-width:0;width:auto;max-width:none;padding:8px 3px 6px"':''}>${columns?`<span class="sortText" style="display:flex;flex-direction:column;align-items:center;min-width:0"><strong style="display:flex;flex-direction:column;align-items:center;font-size:13px">${vertical(p.label)}</strong>${p.detail?`<small style="display:flex;flex-direction:column;align-items:center;font-size:15px;line-height:1.05;letter-spacing:0;white-space:normal">${vertical(p.detail)}</small>`:''}</span><span class="sortColumnControls"><button type="button" class="sortUp" aria-label="Posunout vlevo">←</button><button type="button" class="sortHandle" draggable="true" aria-label="Přetáhnout sloupec" title="Přetáhnout sloupec">⠿</button><button type="button" class="sortDown" aria-label="Posunout vpravo">→</button></span>`:`<button type="button" class="sortHandle" draggable="true" aria-label="Přetáhnout položku" title="Přetáhnout položku">⠿</button><span class="sortText"><strong>${esc(p.label)}</strong>${p.detail?`<small>${esc(p.detail)}</small>`:''}</span><span class="sortMoves"><button type="button" class="sortUp" aria-label="Posunout nahoru">↑</button><button type="button" class="sortDown" aria-label="Posunout dolů">↓</button></span>`}</div>`}).join('')}</div>`;
 }
 function logicGridHTML(cfg){
  const rows=Array.isArray(cfg.rows)?cfg.rows:[],cols=Array.isArray(cfg.columns)?cfg.columns:[];
@@ -249,24 +249,35 @@ function bindBlock(w,b){
    sortList.querySelectorAll('.sortUp').forEach(btn=>btn.onclick=()=>move(btn.closest('.sortRow'),-1));
    sortList.querySelectorAll('.sortDown').forEach(btn=>btn.onclick=()=>move(btn.closest('.sortRow'),1));
    sortList.querySelectorAll('.sortHandle').forEach(handle=>{
+     const row=handle.closest('.sortRow');
+     handle.addEventListener('dragstart',e=>{if(!row)return;row.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',row.dataset.value||'')});
+     handle.addEventListener('dragend',()=>row?.classList.remove('dragging'));
      handle.onpointerdown=e=>{
-       const row=handle.closest('.sortRow');if(!row)return;
+       if(e.pointerType==='mouse')return;
+       if(!row)return;
        e.preventDefault();row.classList.add('dragging');handle.setPointerCapture?.(e.pointerId);
        const onMove=ev=>{
-         const target=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.sortRow');
+         const el=document.elementFromPoint(ev.clientX,ev.clientY);
+         const target=el?.closest('.sortRow');
          if(!target||target===row||target.parentElement!==sortList)return;
          const rect=target.getBoundingClientRect();
          if(sortList.classList.contains('sort-columns')){
-           if(ev.clientX<rect.left+rect.width/2)sortList.insertBefore(row,target);
-           else sortList.insertBefore(row,target.nextElementSibling);
+           sortList.insertBefore(row,ev.clientX<rect.left+rect.width/2?target:target.nextElementSibling);
          }else{
-           if(ev.clientY<rect.top+rect.height/2)sortList.insertBefore(row,target);
-           else sortList.insertBefore(row,target.nextElementSibling);
+           sortList.insertBefore(row,ev.clientY<rect.top+rect.height/2?target:target.nextElementSibling);
          }
        };
        const onUp=ev=>{row.classList.remove('dragging');handle.releasePointerCapture?.(ev.pointerId);handle.onpointermove=null;handle.onpointerup=null;handle.onpointercancel=null};
        handle.onpointermove=onMove;handle.onpointerup=onUp;handle.onpointercancel=onUp;
      };
+   });
+   sortList.addEventListener('dragover',e=>{
+     e.preventDefault();
+     const dragging=sortList.querySelector('.sortRow.dragging');if(!dragging)return;
+     const target=e.target.closest('.sortRow');if(!target||target===dragging||target.parentElement!==sortList)return;
+     const rect=target.getBoundingClientRect();
+     if(sortList.classList.contains('sort-columns'))sortList.insertBefore(dragging,e.clientX<rect.left+rect.width/2?target:target.nextElementSibling);
+     else sortList.insertBefore(dragging,e.clientY<rect.top+rect.height/2?target:target.nextElementSibling);
    });
    sortCheck.onclick=async()=>{
      const order=rows().map(r=>r.dataset.value);
