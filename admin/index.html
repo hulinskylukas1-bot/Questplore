@@ -26,16 +26,22 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
 .button-link{display:inline-flex;align-items:center;text-decoration:none;border-radius:9px;padding:10px 14px;background:var(--accent);color:#111;font-weight:700}
 
 
-.dashboard-view,.email-view{min-height:100vh;background:var(--bg);color:var(--text)}
-.dashboard-top,.email-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--line);background:#12151a;position:sticky;top:0;z-index:20}
-.dashboard-actions,.email-actions{display:flex;align-items:center;gap:8px}.dashboard-actions span,.email-actions span{color:var(--muted);font-size:12px}
-.dashboard-main,.email-main{max-width:1180px;margin:0 auto;padding:34px 24px 60px}
+.dashboard-view,.email-view,.stats-view{min-height:100vh;background:var(--bg);color:var(--text)}
+.dashboard-top,.email-top,.stats-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--line);background:#12151a;position:sticky;top:0;z-index:20}
+.dashboard-actions,.email-actions,.stats-actions{display:flex;align-items:center;gap:8px}.dashboard-actions span,.email-actions span,.stats-actions span{color:var(--muted);font-size:12px}
+.dashboard-main,.email-main,.stats-main{max-width:1180px;margin:0 auto;padding:34px 24px 60px}
 .dashboard-hero{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:26px}.dashboard-hero h1{font-size:34px;margin:4px 0 6px}.dashboard-hero p{margin:0;color:var(--muted)}
 .dashboard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.dashboard-card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:20px;min-height:180px;display:flex;flex-direction:column;gap:10px}.dashboard-card h2{margin:0;font-size:22px}.dashboard-card p{color:var(--muted);margin:0;line-height:1.5}.dashboard-card .card-actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}.dashboard-card.feature{border-color:#5e4a28;background:linear-gradient(180deg,#201b13,#171a1f)}
 .game-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.game-card{border:1px solid var(--line);background:#111419;border-radius:13px;padding:15px;cursor:pointer;text-align:left;color:var(--text);font-weight:400}.game-card:hover{border-color:#5e4a28;background:#171a1f}.game-card strong{display:block;font-size:16px;margin-bottom:4px}.game-meta{color:var(--muted);font-size:12px}
 .email-headline{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:22px}.email-headline h1{margin:4px 0 0;font-size:32px}.email-list{display:grid;gap:12px}.email-card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:16px}.email-card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.email-card h3{margin:0 0 4px}.email-card .subject{margin:10px 0;color:#d8ddd7}.email-card .desc{color:var(--muted);font-size:13px}.status-pill{border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;background:#2a2518;color:#e8c97d}.status-pill.active{background:#17301f;color:#9de0ad}.email-card-actions{display:flex;gap:8px;margin-top:12px}
 .email-form-dialog{width:min(760px,calc(100% - 32px))}.email-form-dialog textarea#emailBodyInput{min-height:260px}.email-form-dialog .form-grid.two{grid-template-columns:1fr 1fr}
 .header-home{margin-right:4px}
+.stats-headline{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:22px}.stats-headline h1{margin:4px 0 0;font-size:32px}
+.stats-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.stats-kpi{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:16px}.stats-kpi .label{font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}.stats-kpi .value{font-size:28px;font-weight:800;margin-top:8px}.stats-kpi .sub{font-size:12px;color:var(--muted);margin-top:4px}
+.stats-section{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:18px}.stats-section h2{margin:0 0 12px}.recent-orders{display:grid;gap:8px}.recent-order{display:grid;grid-template-columns:1.4fr .8fr .8fr .8fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.recent-order:last-child{border-bottom:0}.recent-order .muted{font-size:12px}
+@media(max-width:850px){.stats-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.recent-order{grid-template-columns:1fr 1fr}.recent-order .hide-mobile{display:none}}
+
 @media(max-width:850px){.dashboard-grid,.game-cards{grid-template-columns:1fr}.dashboard-hero,.email-headline{align-items:flex-start;flex-direction:column}.dashboard-top,.email-top{align-items:flex-start;flex-direction:column}.dashboard-actions,.email-actions{width:100%;justify-content:flex-end}.email-form-dialog .form-grid.two{grid-template-columns:1fr}}
 </style>
 </head>
@@ -95,6 +101,18 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
           <p>Tvořte a spravujte šablony e-mailů, které později napojíme na nákup, herní kódy a další zákaznické události.</p>
           <div class="card-actions"><button id="openEmailsBtn">Otevřít e-maily</button></div>
         </section>
+        <section class="dashboard-card">
+          <div class="eyebrow">WEB</div>
+          <h2>Web Questplore</h2>
+          <p>Otevřete veřejnou stránku, kterou uvidí zákazníci při výběru a nákupu her.</p>
+          <div class="card-actions"><a class="button-link" href="../home.html" target="_blank" rel="noopener">Otevřít zákaznický web ↗</a></div>
+        </section>
+        <section class="dashboard-card">
+          <div class="eyebrow">PRODEJ</div>
+          <h2>Statistiky prodeje</h2>
+          <p>Základní přehled objednávek a prodejů. Detailní grafy, filtry a rozpad podle her doplníme později.</p>
+          <div class="card-actions"><button id="openStatsBtn">Otevřít statistiky</button></div>
+        </section>
       </div>
     </main>
   </section>
@@ -116,6 +134,36 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
       </div>
       <div class="tipbox" style="margin:0 0 18px">Zde zatím připravujeme obsah šablon. Samotné automatické odesílání napojíme později na nákupní a herní události.</div>
       <div id="emailTemplatesList" class="email-list"></div>
+    </main>
+  </section>
+
+
+  <section id="statsView" class="stats-view hidden">
+    <div class="stats-top">
+      <div><div class="eyebrow">QUESTPLORE</div><strong>Statistiky prodeje</strong></div>
+      <div class="stats-actions">
+        <span id="statsUserEmail"></span>
+        <button id="statsHomeBtn" class="secondary">← Přehled</button>
+        <button id="statsAccountBtn" class="secondary">Účet</button>
+        <button id="statsLogoutBtn" class="secondary">Odhlásit</button>
+      </div>
+    </div>
+    <main class="stats-main">
+      <div class="stats-headline">
+        <div><div class="eyebrow">PRODEJ</div><h1>Základní statistiky</h1></div>
+        <button id="reloadStatsBtn" class="secondary">↻ Načíst znovu</button>
+      </div>
+      <div class="tipbox" style="margin:0 0 18px">Toto je základ budoucí analytiky. Později sem můžeme přidat grafy v čase, konverze, slevové kódy, vratky a porovnání jednotlivých her.</div>
+      <div class="stats-kpis">
+        <div class="stats-kpi"><div class="label">Objednávky celkem</div><div class="value" id="statOrdersTotal">—</div><div class="sub">všechny stavy</div></div>
+        <div class="stats-kpi"><div class="label">Zaplacené</div><div class="value" id="statOrdersPaid">—</div><div class="sub">úspěšné platby</div></div>
+        <div class="stats-kpi"><div class="label">Posledních 30 dní</div><div class="value" id="statOrders30">—</div><div class="sub">zaplacené objednávky</div></div>
+        <div class="stats-kpi"><div class="label">Tržby</div><div class="value" id="statRevenue">—</div><div class="sub" id="statRevenueSub">podle uložených částek</div></div>
+      </div>
+      <section class="stats-section">
+        <h2>Poslední objednávky</h2>
+        <div id="recentOrders" class="recent-orders"><div class="muted">Načítám…</div></div>
+      </section>
     </main>
   </section>
 
@@ -344,7 +392,7 @@ async function showSession(session){
   try{
     await ensureAdmin();
     const email=session.user.email||'';
-    $('userEmail').textContent=email;$('dashboardUserEmail').textContent=email;$('emailUserEmail').textContent=email;
+    $('userEmail').textContent=email;$('dashboardUserEmail').textContent=email;$('emailUserEmail').textContent=email;$('statsUserEmail').textContent=email;
     $('loginView').classList.add('hidden');
     await showDashboard();
   }catch(e){
@@ -407,11 +455,13 @@ async function logoutAdmin(){await supabase.auth.signOut();location.reload()}
 $('logoutBtn').onclick=logoutAdmin;
 $('dashboardLogoutBtn').onclick=logoutAdmin;
 $('emailLogoutBtn').onclick=logoutAdmin;
+$('statsLogoutBtn').onclick=logoutAdmin;
 
 function openAccountDialog(){$('accountMessage').textContent='';$('newEmail').value='';$('accountDialog').showModal()}
 $('accountBtn').onclick=openAccountDialog;
 $('dashboardAccountBtn').onclick=openAccountDialog;
 $('emailAccountBtn').onclick=openAccountDialog;
+$('statsAccountBtn').onclick=openAccountDialog;
 $('cancelAccountBtn').onclick=()=>$('accountDialog').close();
 $('accountForm').addEventListener('submit',async e=>{
   e.preventDefault();const newEmail=$('newEmail').value.trim();$('accountMessage').textContent='Ukládám…';
@@ -424,7 +474,7 @@ $('accountForm').addEventListener('submit',async e=>{
 
 
 function hideAdminViews(){
-  $('dashboardView').classList.add('hidden');$('emailView').classList.add('hidden');$('appView').classList.add('hidden');
+  $('dashboardView').classList.add('hidden');$('emailView').classList.add('hidden');$('statsView').classList.add('hidden');$('appView').classList.add('hidden');
 }
 async function showDashboard(){
   hideAdminViews();$('dashboardView').classList.remove('hidden');
@@ -449,6 +499,45 @@ $('homeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
 $('emailHomeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
 $('dashboardNewGameBtn').onclick=()=>openGameDialog('create');
 $('openEmailsBtn').onclick=()=>showEmailTemplates().catch(e=>alert(errText(e)));
+$('openStatsBtn').onclick=()=>showStats().catch(e=>alert(errText(e)));
+$('statsHomeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
+$('reloadStatsBtn').onclick=()=>showStats().catch(e=>alert(errText(e)));
+
+function formatMoney(amount,currency='CZK'){
+  if(amount==null||amount==='')return '—';
+  const n=Number(amount);if(!Number.isFinite(n))return '—';
+  try{return new Intl.NumberFormat('cs-CZ',{style:'currency',currency:currency||'CZK',maximumFractionDigits:0}).format(n)}
+  catch{return n.toLocaleString('cs-CZ')+' '+(currency||'')}
+}
+async function showStats(){
+  hideAdminViews();$('statsView').classList.remove('hidden');
+  const {data:orders,error}=await supabase.from('orders').select('id,email,status,amount,currency,created_at,paid_at,game_id,customer_name').order('created_at',{ascending:false});
+  if(error)throw error;
+  const rows=orders||[],paid=rows.filter(o=>o.status==='paid'||o.paid_at);
+  const since=Date.now()-30*24*60*60*1000;
+  const paid30=paid.filter(o=>new Date(o.paid_at||o.created_at).getTime()>=since);
+  $('statOrdersTotal').textContent=rows.length;
+  $('statOrdersPaid').textContent=paid.length;
+  $('statOrders30').textContent=paid30.length;
+  const withAmount=paid.filter(o=>o.amount!=null&&Number.isFinite(Number(o.amount)));
+  const currencies=[...new Set(withAmount.map(o=>o.currency||'CZK'))];
+  if(withAmount.length&&currencies.length===1){
+    $('statRevenue').textContent=formatMoney(withAmount.reduce((s,o)=>s+Number(o.amount),0),currencies[0]);
+    $('statRevenueSub').textContent='z '+withAmount.length+' objednávek s uloženou částkou';
+  }else{
+    $('statRevenue').textContent='—';
+    $('statRevenueSub').textContent=withAmount.length?'více měn – rozpad doplníme':'u současných objednávek není částka uložená';
+  }
+  const gameMap=new Map(games.map(g=>[g.id,g.name]));
+  const host=$('recentOrders');host.innerHTML='';
+  if(!rows.length){host.innerHTML='<div class="muted">Zatím nejsou žádné objednávky.</div>';return}
+  rows.slice(0,10).forEach(o=>{
+    const el=document.createElement('div');el.className='recent-order';
+    const when=new Date(o.paid_at||o.created_at).toLocaleString('cs-CZ',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    el.innerHTML=`<div><strong>${esc(gameMap.get(o.game_id)||'Neznámá hra')}</strong><div class="muted">${esc(o.email||o.customer_name||'bez kontaktu')}</div></div><div>${esc(o.status||'—')}</div><div class="hide-mobile">${esc(when)}</div><div>${esc(formatMoney(o.amount,o.currency||'CZK'))}</div>`;
+    host.appendChild(el);
+  });
+}
 
 async function showEmailTemplates(){
   hideAdminViews();$('emailView').classList.remove('hidden');
