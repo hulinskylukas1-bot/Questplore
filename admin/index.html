@@ -26,10 +26,10 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
 .button-link{display:inline-flex;align-items:center;text-decoration:none;border-radius:9px;padding:10px 14px;background:var(--accent);color:#111;font-weight:700}
 
 
-.dashboard-view,.email-view,.stats-view{min-height:100vh;background:var(--bg);color:var(--text)}
-.dashboard-top,.email-top,.stats-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--line);background:#12151a;position:sticky;top:0;z-index:20}
-.dashboard-actions,.email-actions,.stats-actions{display:flex;align-items:center;gap:8px}.dashboard-actions span,.email-actions span,.stats-actions span{color:var(--muted);font-size:12px}
-.dashboard-main,.email-main,.stats-main{max-width:1180px;margin:0 auto;padding:34px 24px 60px}
+.dashboard-view,.email-view,.stats-view,.customers-view{min-height:100vh;background:var(--bg);color:var(--text)}
+.dashboard-top,.email-top,.stats-top,.customers-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--line);background:#12151a;position:sticky;top:0;z-index:20}
+.dashboard-actions,.email-actions,.stats-actions,.customers-actions{display:flex;align-items:center;gap:8px}.dashboard-actions span,.email-actions span,.stats-actions span,.customers-actions span{color:var(--muted);font-size:12px}
+.dashboard-main,.email-main,.stats-main,.customers-main{max-width:1180px;margin:0 auto;padding:34px 24px 60px}
 .dashboard-hero{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:26px}.dashboard-hero h1{font-size:34px;margin:4px 0 6px}.dashboard-hero p{margin:0;color:var(--muted)}
 .dashboard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.dashboard-card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:20px;min-height:180px;display:flex;flex-direction:column;gap:10px}.dashboard-card h2{margin:0;font-size:22px}.dashboard-card p{color:var(--muted);margin:0;line-height:1.5}.dashboard-card .card-actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}.dashboard-card.feature{border-color:#5e4a28;background:linear-gradient(180deg,#201b13,#171a1f)}
 .game-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.game-card{border:1px solid var(--line);background:#111419;border-radius:13px;padding:15px;cursor:pointer;text-align:left;color:var(--text);font-weight:400}.game-card:hover{border-color:#5e4a28;background:#171a1f}.game-card strong{display:block;font-size:16px;margin-bottom:4px}.game-meta{color:var(--muted);font-size:12px}
@@ -41,6 +41,11 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
 .stats-kpi{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:16px}.stats-kpi .label{font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}.stats-kpi .value{font-size:28px;font-weight:800;margin-top:8px}.stats-kpi .sub{font-size:12px;color:var(--muted);margin-top:4px}
 .stats-section{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:18px}.stats-section h2{margin:0 0 12px}.recent-orders{display:grid;gap:8px}.recent-order{display:grid;grid-template-columns:1.4fr .8fr .8fr .8fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.recent-order:last-child{border-bottom:0}.recent-order .muted{font-size:12px}
 @media(max-width:850px){.stats-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.recent-order{grid-template-columns:1fr 1fr}.recent-order .hide-mobile{display:none}}
+.customers-headline{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:18px}.customers-headline h1{margin:4px 0 0;font-size:32px}
+.customers-toolbar{display:flex;gap:10px;margin-bottom:16px}.customers-toolbar input{flex:1}
+.customers-list{display:grid;gap:10px}.customer-card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:16px}.customer-top{display:flex;justify-content:space-between;gap:12px}.customer-card h3{margin:0 0 5px}.customer-meta{color:var(--muted);font-size:13px;line-height:1.5}.customer-note{margin-top:10px;color:#d6dbd5;font-size:13px;white-space:pre-wrap}.customer-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.customer-form-dialog{width:min(720px,calc(100% - 32px))}
+
 
 @media(max-width:850px){.dashboard-grid,.game-cards{grid-template-columns:1fr}.dashboard-hero,.email-headline{align-items:flex-start;flex-direction:column}.dashboard-top,.email-top{align-items:flex-start;flex-direction:column}.dashboard-actions,.email-actions{width:100%;justify-content:flex-end}.email-form-dialog .form-grid.two{grid-template-columns:1fr}}
 </style>
@@ -113,6 +118,12 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
           <p>Základní přehled objednávek a prodejů. Detailní grafy, filtry a rozpad podle her doplníme později.</p>
           <div class="card-actions"><button id="openStatsBtn">Otevřít statistiky</button></div>
         </section>
+        <section class="dashboard-card">
+          <div class="eyebrow">ZÁKAZNÍCI</div>
+          <h2>Databáze zákazníků</h2>
+          <p>Kontakty a základní poznámky k zákazníkům. Později sem doplníme historii objednávek, hraných her a marketingové souhlasy.</p>
+          <div class="card-actions"><button id="openCustomersBtn">Otevřít databázi</button></div>
+        </section>
       </div>
     </main>
   </section>
@@ -164,6 +175,28 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
         <h2>Poslední objednávky</h2>
         <div id="recentOrders" class="recent-orders"><div class="muted">Načítám…</div></div>
       </section>
+    </main>
+  </section>
+
+
+  <section id="customersView" class="customers-view hidden">
+    <div class="customers-top">
+      <div><div class="eyebrow">QUESTPLORE</div><strong>Databáze zákazníků</strong></div>
+      <div class="customers-actions">
+        <span id="customersUserEmail"></span>
+        <button id="customersHomeBtn" class="secondary">← Přehled</button>
+        <button id="customersAccountBtn" class="secondary">Účet</button>
+        <button id="customersLogoutBtn" class="secondary">Odhlásit</button>
+      </div>
+    </div>
+    <main class="customers-main">
+      <div class="customers-headline">
+        <div><div class="eyebrow">CRM ZÁKLAD</div><h1>Zákazníci</h1></div>
+        <button id="newCustomerBtn">+ Nový zákazník</button>
+      </div>
+      <div class="tipbox" style="margin:0 0 18px">Zatím evidujeme kontakt a poznámku. Později sem napojíme objednávky, odehrané hry, marketingové souhlasy a další historii zákazníka.</div>
+      <div class="customers-toolbar"><input id="customerSearchInput" placeholder="Hledat podle jména, e-mailu nebo telefonu"></div>
+      <div id="customersList" class="customers-list"></div>
     </main>
   </section>
 
@@ -291,6 +324,25 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
   </dialog>
 
 
+
+  <dialog id="customerDialog" class="customer-form-dialog">
+    <form class="dialog-card" id="customerForm">
+      <div class="eyebrow" id="customerDialogEyebrow">NOVÝ ZÁKAZNÍK</div>
+      <h2 id="customerDialogTitle">Přidat zákazníka</h2>
+      <input id="customerId" type="hidden">
+      <div class="form-grid two">
+        <label>Jméno<input id="customerNameInput" placeholder="Jméno a příjmení"></label>
+        <label>E-mail<input id="customerEmailInput" type="email" placeholder="zakaznik@example.cz"></label>
+      </div>
+      <label>Telefon<input id="customerPhoneInput" placeholder="+420 ..."></label>
+      <label>Interní poznámka<textarea id="customerNoteInput" rows="5"></textarea></label>
+      <div class="dialog-actions">
+        <button type="button" id="cancelCustomerBtn" class="secondary">Zrušit</button>
+        <button type="submit">Uložit zákazníka</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="emailTemplateDialog" class="email-form-dialog">
     <form class="dialog-card" id="emailTemplateForm">
       <div class="eyebrow" id="emailDialogEyebrow">NOVÝ E-MAIL</div>
@@ -371,6 +423,7 @@ let games=[], game=null, versions=[], version=null, gameTranslation=null;
 let stages=[], selectedStage=null, currentBlocks=[], transitions=[], allChoiceBlocks=[];
 let gameDialogMode='create';
 let emailTemplates=[];
+let customers=[];
 
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 function errText(e){return e?.message||String(e)}
@@ -392,7 +445,7 @@ async function showSession(session){
   try{
     await ensureAdmin();
     const email=session.user.email||'';
-    $('userEmail').textContent=email;$('dashboardUserEmail').textContent=email;$('emailUserEmail').textContent=email;$('statsUserEmail').textContent=email;
+    $('userEmail').textContent=email;$('dashboardUserEmail').textContent=email;$('emailUserEmail').textContent=email;$('statsUserEmail').textContent=email;$('customersUserEmail').textContent=email;
     $('loginView').classList.add('hidden');
     await showDashboard();
   }catch(e){
@@ -456,12 +509,14 @@ $('logoutBtn').onclick=logoutAdmin;
 $('dashboardLogoutBtn').onclick=logoutAdmin;
 $('emailLogoutBtn').onclick=logoutAdmin;
 $('statsLogoutBtn').onclick=logoutAdmin;
+$('customersLogoutBtn').onclick=logoutAdmin;
 
 function openAccountDialog(){$('accountMessage').textContent='';$('newEmail').value='';$('accountDialog').showModal()}
 $('accountBtn').onclick=openAccountDialog;
 $('dashboardAccountBtn').onclick=openAccountDialog;
 $('emailAccountBtn').onclick=openAccountDialog;
 $('statsAccountBtn').onclick=openAccountDialog;
+$('customersAccountBtn').onclick=openAccountDialog;
 $('cancelAccountBtn').onclick=()=>$('accountDialog').close();
 $('accountForm').addEventListener('submit',async e=>{
   e.preventDefault();const newEmail=$('newEmail').value.trim();$('accountMessage').textContent='Ukládám…';
@@ -474,7 +529,7 @@ $('accountForm').addEventListener('submit',async e=>{
 
 
 function hideAdminViews(){
-  $('dashboardView').classList.add('hidden');$('emailView').classList.add('hidden');$('statsView').classList.add('hidden');$('appView').classList.add('hidden');
+  $('dashboardView').classList.add('hidden');$('emailView').classList.add('hidden');$('statsView').classList.add('hidden');$('customersView').classList.add('hidden');$('appView').classList.add('hidden');
 }
 async function showDashboard(){
   hideAdminViews();$('dashboardView').classList.remove('hidden');
@@ -500,7 +555,9 @@ $('emailHomeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
 $('dashboardNewGameBtn').onclick=()=>openGameDialog('create');
 $('openEmailsBtn').onclick=()=>showEmailTemplates().catch(e=>alert(errText(e)));
 $('openStatsBtn').onclick=()=>showStats().catch(e=>alert(errText(e)));
+$('openCustomersBtn').onclick=()=>showCustomers().catch(e=>alert(errText(e)));
 $('statsHomeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
+$('customersHomeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
 $('reloadStatsBtn').onclick=()=>showStats().catch(e=>alert(errText(e)));
 
 function formatMoney(amount,currency='CZK'){
@@ -537,6 +594,52 @@ async function showStats(){
     el.innerHTML=`<div><strong>${esc(gameMap.get(o.game_id)||'Neznámá hra')}</strong><div class="muted">${esc(o.email||o.customer_name||'bez kontaktu')}</div></div><div>${esc(o.status||'—')}</div><div class="hide-mobile">${esc(when)}</div><div>${esc(formatMoney(o.amount,o.currency||'CZK'))}</div>`;
     host.appendChild(el);
   });
+}
+
+
+async function showCustomers(){
+  hideAdminViews();$('customersView').classList.remove('hidden');
+  const {data,error}=await supabase.from('customers').select('*').order('created_at',{ascending:false});
+  if(error)throw error;customers=data||[];renderCustomers();
+}
+function renderCustomers(){
+  const q=($('customerSearchInput').value||'').trim().toLowerCase();
+  const host=$('customersList');host.innerHTML='';
+  const rows=customers.filter(x=>!q||[x.name,x.email,x.phone].some(v=>String(v||'').toLowerCase().includes(q)));
+  if(!rows.length){host.innerHTML='<div class="empty" style="height:220px">'+(q?'Žádný zákazník neodpovídá hledání.':'Zatím tu není žádný zákazník.')+'</div>';return}
+  rows.forEach(x=>{
+    const card=document.createElement('article');card.className='customer-card';
+    const title=x.name||x.email||'Zákazník';
+    card.innerHTML=`<div class="customer-top"><div><h3>${esc(title)}</h3><div class="customer-meta">${x.email?esc(x.email):'bez e-mailu'}${x.phone?' · '+esc(x.phone):''}<br>Zdroj: ${esc(x.source||'admin')}</div></div></div>${x.note?`<div class="customer-note">${esc(x.note)}</div>`:''}<div class="customer-actions"><button class="secondary edit-customer">Upravit</button><button class="danger delete-customer">Smazat</button></div>`;
+    card.querySelector('.edit-customer').onclick=()=>openCustomerDialog(x);
+    card.querySelector('.delete-customer').onclick=()=>deleteCustomer(x);
+    host.appendChild(card);
+  });
+}
+function openCustomerDialog(x=null){
+  $('customerId').value=x?.id||'';
+  $('customerDialogEyebrow').textContent=x?'UPRAVIT ZÁKAZNÍKA':'NOVÝ ZÁKAZNÍK';
+  $('customerDialogTitle').textContent=x?.name||x?.email||'Přidat zákazníka';
+  $('customerNameInput').value=x?.name||'';$('customerEmailInput').value=x?.email||'';$('customerPhoneInput').value=x?.phone||'';$('customerNoteInput').value=x?.note||'';
+  $('customerDialog').showModal();
+}
+$('newCustomerBtn').onclick=()=>openCustomerDialog();
+$('cancelCustomerBtn').onclick=()=>$('customerDialog').close();
+$('customerSearchInput').addEventListener('input',renderCustomers);
+$('customerForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=$('customerId').value;
+  const payload={name:$('customerNameInput').value.trim()||null,email:$('customerEmailInput').value.trim()||null,phone:$('customerPhoneInput').value.trim()||null,note:$('customerNoteInput').value.trim()||null,source:id?(customers.find(x=>x.id===id)?.source||'admin'):'admin'};
+  if(!payload.name&&!payload.email&&!payload.phone){alert('Zadejte alespoň jméno, e-mail nebo telefon.');return}
+  const q=id?supabase.from('customers').update(payload).eq('id',id):supabase.from('customers').insert(payload);
+  const {error}=await q;
+  if(error){alert(error.code==='23505'?'Zákazník s tímto e-mailem už existuje.':'Zákazníka se nepodařilo uložit: '+errText(error));return}
+  $('customerDialog').close();toast('Zákazník uložen');await showCustomers();
+});
+async function deleteCustomer(x){
+  if(!confirm(`Opravdu smazat zákazníka „${x.name||x.email||'bez názvu'}“?`))return;
+  const {error}=await supabase.from('customers').delete().eq('id',x.id);if(error){alert(errText(error));return}
+  toast('Zákazník smazán');await showCustomers();
 }
 
 async function showEmailTemplates(){
