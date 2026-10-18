@@ -616,6 +616,7 @@ async function saveBlock(block,tr,card,originalContent){
 function previewUrl(blockId=null,stageId=null){
   const u=new URL('./preview.html',location.href);
   u.searchParams.set('version',version.id);
+  u.searchParams.set('build','vertical-3');
   if(blockId)u.searchParams.set('block',blockId);
   if(stageId)u.searchParams.set('stage',stageId);
   return u.toString();
