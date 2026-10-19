@@ -16,6 +16,29 @@ function hintHTML(b){
  if(!hints.length)return '';
  return `<div class="hintbox" data-count="0"><button class="btn secondary hintBtn">Nápověda</button><div class="hintList"></div></div>`;
 }
+
+function confirmHintUse(){
+ return new Promise(resolve=>{
+   const overlay=document.createElement('div');
+   overlay.className='hintConfirmOverlay';
+   overlay.innerHTML=`<div class="hintConfirmDialog" role="dialog" aria-modal="true" aria-labelledby="hintConfirmTitle">
+     <div class="hintConfirmIcon">💡</div>
+     <h3 id="hintConfirmTitle">Opravdu chcete využít nápovědu?</h3>
+     <div class="hintConfirmActions">
+       <button type="button" class="btn secondary hintConfirmNo">NE</button>
+       <button type="button" class="btn hintConfirmYes">ANO</button>
+     </div>
+   </div>`;
+   document.body.appendChild(overlay);
+   const close=value=>{overlay.remove();resolve(value)};
+   overlay.querySelector('.hintConfirmNo').onclick=()=>close(false);
+   overlay.querySelector('.hintConfirmYes').onclick=()=>close(true);
+   overlay.onclick=e=>{if(e.target===overlay)close(false)};
+   const key=e=>{if(e.key==='Escape'){document.removeEventListener('keydown',key);close(false)}};
+   document.addEventListener('keydown',key,{once:true});
+   setTimeout(()=>overlay.querySelector('.hintConfirmNo')?.focus(),0);
+ });
+}
 function sortItemParts(item,i){
  if(typeof item==='string')return {id:item,label:item,detail:''};
  return {id:String(item?.id??item?.value??item?.label??`item-${i+1}`),label:String(item?.label??item?.text??item?.id??''),detail:String(item?.detail??'')};
@@ -95,8 +118,11 @@ function bindBlock(w,b){
    const box=w.querySelector('.hintbox'),list=w.querySelector('.hintList');
    let count=Number(box?.dataset.count||0);
    if(count>=hints.length)return;
+   if(!(await confirmHintUse()))return;
    const h=hints[count],txt=typeof h==='string'?h:(h.text||h.content||'');
-   const el=document.createElement('div');el.className='hintItem';el.textContent=txt;list.appendChild(el);
+   const el=document.createElement('div');el.className='hintItem';
+   el.innerHTML=`<strong>Nápověda ${count+1}</strong><div>${esc(txt)}</div>`;
+   list.appendChild(el);
    count++;box.dataset.count=String(count);
    hintBtn.textContent=count<hints.length?`Další nápověda (${count}/${hints.length})`:'Nápovědy vyčerpány';
    if(count>=hints.length)hintBtn.disabled=true;
