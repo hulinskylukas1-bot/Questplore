@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0e1013">
 <title>Questplore — Náhled hry</title>
-<link rel="stylesheet" href="../styles.css?v=preview1">
+<link rel="stylesheet" href="../styles.css?v=preview2">
 <style>
 body{min-height:100vh}
 .sortList.sort-columns{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;overflow:visible!important;padding:4px 0 8px}
@@ -56,6 +56,20 @@ function hintHTML(cfg){
  if(!hints.length)return '';
  return '<div class="hintbox" data-count="0"><button class="btn secondary hintBtn">Nápověda</button><div class="hintList"></div></div>';
 }
+
+function confirmHintUse(){
+ return new Promise(resolve=>{
+   const overlay=document.createElement('div');
+   overlay.className='hintConfirmOverlay';
+   overlay.innerHTML='<div class="hintConfirmDialog" role="dialog" aria-modal="true" aria-labelledby="hintConfirmTitle"><div class="hintConfirmIcon">💡</div><h3 id="hintConfirmTitle">Opravdu chcete využít nápovědu?</h3><div class="hintConfirmActions"><button type="button" class="btn secondary hintConfirmNo">NE</button><button type="button" class="btn hintConfirmYes">ANO</button></div></div>';
+   document.body.appendChild(overlay);
+   const close=value=>{overlay.remove();resolve(value)};
+   overlay.querySelector('.hintConfirmNo').onclick=()=>close(false);
+   overlay.querySelector('.hintConfirmYes').onclick=()=>close(true);
+   overlay.onclick=e=>{if(e.target===overlay)close(false)};
+   setTimeout(()=>overlay.querySelector('.hintConfirmNo')?.focus(),0);
+ });
+}
 function sortParts(item,i){if(typeof item==='string')return{id:item,label:item,detail:''};return{id:String(item?.id??item?.value??item?.label??('item-'+(i+1))),label:String(item?.label??item?.text??item?.id??''),detail:String(item?.detail??'')}}
 function sortingRows(items,layout='list'){const columns=layout==='columns',vertical=s=>String(s||'').split('').map(ch=>'<span style="display:block;line-height:1.05">'+esc(ch)+'</span>').join(''),listStyle=columns?' style="display:grid;grid-template-columns:repeat('+Math.max(items.length,1)+',minmax(0,1fr));gap:5px;overflow:visible;width:100%"':'';return '<div class="sortList sort-'+esc(layout)+'"'+listStyle+'>'+items.map((item,i)=>{const x=sortParts(item,i);return '<div class="sortRow" data-value="'+esc(x.id)+'"'+(columns?' style="min-width:0;width:auto;max-width:none;padding:8px 3px 6px"':'')+'>'+(columns?'<span class="sortText" style="display:flex;flex-direction:column;align-items:center;min-width:0"><strong style="display:flex;flex-direction:column;align-items:center;font-size:13px">'+vertical(x.label)+'</strong>'+(x.detail?'<small style="display:flex;flex-direction:column;align-items:center;font-size:15px;line-height:1.05;letter-spacing:0;white-space:normal">'+vertical(x.detail)+'</small>':'')+'</span><span class="sortColumnControls"><button type="button" class="sortUp" aria-label="Vlevo">←</button><button type="button" class="sortHandle" draggable="true" aria-label="Přetáhnout sloupec" title="Přetáhnout sloupec">⠿</button><button type="button" class="sortDown" aria-label="Vpravo">→</button></span>':'<button type="button" class="sortHandle" draggable="true" aria-label="Přetáhnout položku" title="Přetáhnout položku">⠿</button><span class="sortText"><strong>'+esc(x.label)+'</strong>'+(x.detail?'<small>'+esc(x.detail)+'</small>':'')+'</span><span class="sortMoves"><button type="button" class="sortUp" aria-label="Nahoru">↑</button><button type="button" class="sortDown" aria-label="Dolů">↓</button></span>')+'</div>'}).join('')+'</div>'}
 function logicGridHTML(cfg){const rows=Array.isArray(cfg.rows)?cfg.rows:[],cols=Array.isArray(cfg.columns)?cfg.columns:[];if(!rows.length||!cols.length)return '<div class="placeholder">Logická tabulka zatím není nastavená.</div>';return '<div class="logicGridWrap"><table class="logicGrid"><thead><tr><th></th>'+cols.map(c=>'<th>'+esc(c.label||c.key||'')+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr><th>'+esc(row)+'</th>'+cols.map((col,ci)=>'<td><select class="logicSelect" data-row="'+esc(row)+'" data-key="'+esc(col.key||ci)+'"><option value="">— vyberte —</option>'+(col.options||[]).map(o=>'<option value="'+esc(o)+'">'+esc(o)+'</option>').join('')+'</select></td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
@@ -79,7 +93,7 @@ function blockHTML(b){
 
 function bind(w,b,onDone){
  const cfg=b.config||{};
- const hb=w.querySelector('.hintBtn');if(hb)hb.onclick=()=>{const box=w.querySelector('.hintbox'),list=w.querySelector('.hintList'),h=cfg.hints||[];let n=Number(box.dataset.count||0);if(n>=h.length)return;const e=document.createElement('div');e.className='hintItem';e.textContent=typeof h[n]==='string'?h[n]:(h[n]?.text||h[n]?.content||'');list.appendChild(e);n++;box.dataset.count=String(n);hb.textContent=n<h.length?'Další nápověda':'Nápovědy vyčerpány';if(n>=h.length)hb.disabled=true};
+ const hb=w.querySelector('.hintBtn');if(hb)hb.onclick=async()=>{const box=w.querySelector('.hintbox'),list=w.querySelector('.hintList'),h=cfg.hints||[];let n=Number(box.dataset.count||0);if(n>=h.length)return;if(!(await confirmHintUse()))return;const txt=typeof h[n]==='string'?h[n]:(h[n]?.text||h[n]?.content||'');const e=document.createElement('div');e.className='hintItem';e.innerHTML='<strong>Nápověda '+(n+1)+'</strong><div>'+esc(txt)+'</div>';list.appendChild(e);n++;box.dataset.count=String(n);hb.textContent=n<h.length?'Další nápověda ('+n+'/'+h.length+')':'Nápovědy vyčerpány';if(n>=h.length)hb.disabled=true};
  const ck=w.querySelector('.check');if(ck)ck.onclick=()=>{const val=w.querySelector('input').value,ans=cfg.answers||cfg.accepted_answers||[],ok=!ans.length||ans.some(a=>phraseMatch(a,val));const r=w.querySelector('.result');r.textContent=ok?'Správně.':'To není ono. Hledejte dál.';if(ok){ck.disabled=true;w.querySelector('input').disabled=true;onDone()}};
  w.querySelectorAll('.choice').forEach(btn=>btn.onclick=()=>{choices[b.id]=btn.dataset.value;w.querySelectorAll('.choice').forEach(x=>x.disabled=true);btn.classList.add('selected');onDone()});
  const cf=w.querySelector('.confirmbtn');if(cf)cf.onclick=()=>{cf.disabled=true;onDone()};
