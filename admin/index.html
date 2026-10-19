@@ -315,6 +315,18 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
     </section>
   </div>
 
+  <dialog id="gpsTestDialog">
+    <div class="dialog-card" style="width:min(520px,calc(100vw - 32px))">
+      <div class="eyebrow">TESTOVACÍ REŽIM</div>
+      <h2>Testovat včetně souřadnic?</h2>
+      <p class="muted">Pokud zvolíte NE, GPS bloky se v náhledu zobrazí, ale poloha se nebude skutečně ověřovat.</p>
+      <div class="dialog-actions">
+        <button type="button" id="gpsTestNoBtn" class="secondary">NE – bez souřadnic</button>
+        <button type="button" id="gpsTestYesBtn">ANO – ověřovat polohu</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="accountDialog">
     <form method="dialog" class="dialog-card" id="accountForm">
       <div class="eyebrow">ADMIN ÚČET</div>
@@ -940,9 +952,11 @@ $('gameForm').addEventListener('submit',async e=>{
   }catch(e){$('gameFormMessage').textContent='Uložení se nezdařilo: '+errText(e)}
 });
 
-$('testGameBtn').onclick=()=>{
+$('testGameBtn').onclick=async()=>{
   if(!version)return;
-  const win=window.open(previewUrl(),'_blank');
+  const useGps=await askGpsTestMode();
+  if(useGps===null)return;
+  const win=window.open(previewUrl(null,null,useGps),'_blank');
   if(!win)alert('Prohlížeč zablokoval nové okno. Povol v Safari vyskakovací okna pro Questplore Admin.');
 };
 
@@ -1119,22 +1133,36 @@ async function saveBlock(block,tr,card,originalContent){
   if(isReadOnly())return;
   try{await persistBlockEdits(block,tr,card,originalContent);toast('Blok uložen');await openStage(selectedStage)}catch(e){alert('Uložení se nezdařilo: '+errText(e))}
 }
-function previewUrl(blockId=null,stageId=null){
+function askGpsTestMode(){
+  return new Promise(resolve=>{
+    const d=$('gpsTestDialog');
+    let settled=false;
+    const done=value=>{if(settled)return;settled=true;d.close();resolve(value)};
+    $('gpsTestYesBtn').onclick=()=>done(true);
+    $('gpsTestNoBtn').onclick=()=>done(false);
+    d.oncancel=e=>{e.preventDefault();done(null)};
+    d.showModal();
+  });
+}
+function previewUrl(blockId=null,stageId=null,useGps=true){
   const u=new URL('./preview.html',location.href);
   u.searchParams.set('version',version.id);
-  u.searchParams.set('build','hints-confirm-4');
+  u.searchParams.set('build','gps-test-5');
+  u.searchParams.set('gps',useGps?'1':'0');
   if(blockId)u.searchParams.set('block',blockId);
   if(stageId)u.searchParams.set('stage',stageId);
   return u.toString();
 }
 async function testBlock(block,tr,card,originalContent){
   if(!version)return;
+  const useGps=await askGpsTestMode();
+  if(useGps===null)return;
   const win=window.open('about:blank','_blank');
   if(!win){alert('Prohlížeč zablokoval nové okno. Povol v Safari vyskakovací okna pro Questplore Admin.');return}
   try{
     win.document.write('<title>Questplore — připravuji náhled</title><body style="background:#0e1013;color:#eee;font-family:system-ui;padding:30px">Připravuji náhled bloku…</body>');
     if(!isReadOnly())await persistBlockEdits(block,tr,card,originalContent);
-    win.location.href=previewUrl(block.id);
+    win.location.href=previewUrl(block.id,null,useGps);
   }catch(e){win.close();alert('Náhled se nepodařilo připravit: '+errText(e))}
 }
 async function persistOrder(table,items){const temps=tempPositions(items);for(let i=0;i<items.length;i++){const {error}=await supabase.from(table).update({position:temps[i]}).eq('id',items[i].id);if(error)throw error}for(let i=0;i<items.length;i++){const {error}=await supabase.from(table).update({position:i+1}).eq('id',items[i].id);if(error)throw error}}
@@ -1147,6 +1175,8 @@ $('addBlockForm').addEventListener('submit',async e=>{e.preventDefault();if(!sel
 
 $('testStageBtn').onclick=async()=>{
   if(!selectedStage||!version)return;
+  const useGps=await askGpsTestMode();
+  if(useGps===null)return;
   const win=window.open('about:blank','_blank');
   if(!win){alert('Prohlížeč zablokoval nové okno. Povol v Safari vyskakovací okna pro Questplore Admin.');return}
   try{
@@ -1162,7 +1192,7 @@ $('testStageBtn').onclick=async()=>{
         await persistBlockEdits(block,tr,card,content);
       }
     }
-    win.location.href=previewUrl(null,selectedStage.id);
+    win.location.href=previewUrl(null,selectedStage.id,useGps);
   }catch(e){win.close();alert('Náhled části se nepodařilo připravit: '+errText(e))}
 };
 
