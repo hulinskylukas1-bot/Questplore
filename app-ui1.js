@@ -97,18 +97,15 @@ function blockHTML(b){
 function appendBlock(b){
  if(!state.seenBlockIds.includes(b.id))state.seenBlockIds.push(b.id);
  const feed=document.getElementById('feed');
- const st=data.stages?.[stageIndex];
- if(st?.internal_name?.toLowerCase().includes('nádvoří') && !document.getElementById('courtyardDiagram')){
-   const existing=feed.querySelectorAll('.reveal').length;
-   if(existing>=1){
-     const img=document.createElement('div');
-     img.id='courtyardDiagram'; img.className='reveal shown';
-     img.innerHTML=`<div class="bubble"><img src="./nadvorni-start.svg?v=071" class="media courtyard-media" alt="Schéma začátku hlavolamu na nádvoří"></div>`;
-     feed.appendChild(img);
-   }
- }
  const wrap=document.createElement('div');
- wrap.className='reveal'; wrap.innerHTML=blockHTML(b); feed.appendChild(wrap);
+ wrap.className='reveal'; wrap.innerHTML=blockHTML(b);
+ if(b.block_type!=='image' && b.config?.image_url){
+   const markup=`<img class="media block-illustration" src="${esc(b.config.image_url)}" alt="Obrázek k úkolu" loading="lazy">`;
+   const target=wrap.querySelector('.bubble .text');
+   if(target)target.insertAdjacentHTML('afterend',markup);
+   else wrap.querySelector('.bubble')?.insertAdjacentHTML('afterbegin',markup);
+ }
+ feed.appendChild(wrap);
  requestAnimationFrame(()=>wrap.classList.add('shown'));
  bindBlock(wrap,b);
  setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'end'}),80);
