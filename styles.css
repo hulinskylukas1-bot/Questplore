@@ -91,3 +91,6 @@
 .logicGrid tbody th{background:#12161b;white-space:nowrap}
 .logicGrid select{width:100%;min-width:120px;background:#0d1014;color:inherit;border:1px solid #39404a;border-radius:8px;padding:9px}
 .logic-grid-task .logicCheck{margin-top:4px}
+
+/* Images attached to ordinary game blocks */
+.block-illustration{display:block;width:auto;max-width:100%;height:auto;max-height:520px;object-fit:contain;margin:14px auto;border-radius:10px;background:#fff}
