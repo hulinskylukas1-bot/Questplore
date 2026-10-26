@@ -317,7 +317,7 @@ function bindBlock(w,b){
      const correct=Array.isArray(cfg.correct_order)?cfg.correct_order:null;
      const resultBox=w.querySelector('.result');
      if(correct&&correct.length){
-       const ok=order.length===correct.length&&order.every((x,i)=>norm(x)===norm(correct[i]));
+       const labelById=new Map((cfg.items||[]).map((item,i)=>{const part=sortItemParts(item,i);return [String(part.id),String(part.label)]}));const ok=order.length===correct.length&&order.every((x,i)=>norm(labelById.get(String(x))??x)===norm(labelById.get(String(correct[i]))??correct[i]));
        if(!ok){resultBox.textContent='Pořadí zatím není správně. Zkuste to znovu.';w.classList.add('bad');setTimeout(()=>w.classList.remove('bad'),250);return}
        resultBox.textContent=cfg.success_text||'Správně.';
        sortCheck.disabled=true;w.classList.add('solved');
