@@ -8,6 +8,8 @@
 .quizq{padding:18px 0;border-bottom:1px solid rgba(180,190,170,.16)}
 .quizq:last-child{border-bottom:0}.quizq .choices{margin-top:12px;display:flex;flex-wrap:wrap;gap:9px}
 .quizopt.bad{outline:1px solid #a66}
+.quizopt.quiz-correct,.quizopt.quiz-correct:disabled{background:#174b30!important;border-color:#3dc67b!important;color:#f0fff4!important;outline:2px solid #3dc67b;opacity:1!important}
+.quizopt.quiz-wrong,.quizopt.quiz-wrong:disabled{background:#55232a!important;border-color:#e36b77!important;color:#fff0f1!important;outline:2px solid #e36b77;opacity:1!important}
 .courtyard-media{display:block;max-width:720px;width:100%;height:auto;margin:0 auto;border-radius:12px}
 .sync-notice{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:#20251f;color:#eef0e7;border:1px solid rgba(255,255,255,.14);padding:10px 14px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.28)}
 .sync-notice.show{opacity:1;transform:translate(-50%,0)}
