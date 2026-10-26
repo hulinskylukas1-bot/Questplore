@@ -167,7 +167,7 @@ function bindBlock(w,b){
      const box=w.querySelector(`.quizq[data-q="${qi}"]`); if(!box)return;
      const btn=box.querySelector(`.quizopt[data-i="${oi}"]`);
      box.querySelectorAll('.quizopt').forEach(x=>x.disabled=true);
-     if(btn)btn.classList.add('selected');
+     if(btn)btn.classList.add('selected','quiz-correct');
      const r=box.querySelector('.result'); if(r)r.textContent='Správně.';
      solved.add(Number(qi));
    };
@@ -185,7 +185,7 @@ function bindBlock(w,b){
        solved.add(qi);
        state.quizAnswers[`${b.id}:${qi}`]=oi;
        box.querySelectorAll('.quizopt').forEach(x=>x.disabled=true);
-       btn.classList.add('selected');
+       btn.classList.add('selected','quiz-correct');
        try{
          await persistProgress(
            b,'quiz_question_correct',{question_index:qi,answer_index:oi},
@@ -209,12 +209,11 @@ function bindBlock(w,b){
          solved.delete(qi);
          delete state.quizAnswers[`${b.id}:${qi}`];
          box.querySelectorAll('.quizopt').forEach(x=>x.disabled=false);
-         btn.classList.remove('selected');
+         btn.classList.remove('selected','quiz-correct');
        }
      }else{
        r.textContent='To není správně. Zkuste to znovu.';
-       btn.classList.add('bad');
-       setTimeout(()=>btn.classList.remove('bad'),300);
+       btn.classList.add('quiz-wrong');btn.disabled=true;
      }
    });
  }
