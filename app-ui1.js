@@ -43,6 +43,13 @@ function sortItemParts(item,i){
  if(typeof item==='string')return {id:item,label:item,detail:''};
  return {id:String(item?.id??item?.value??item?.label??`item-${i+1}`),label:String(item?.label??item?.text??item?.id??''),detail:String(item?.detail??'')};
 }
+function initialSortingItems(block,items){
+ if(!['f648efcb-a2e8-4222-a0d5-d9cffbd764b4','76d0ebfa-8818-4a90-85aa-bee7a0dc45b9'].includes(block.id)||items.length<2)return items;
+ const shuffled=items.slice();
+ for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}
+ if(shuffled.every((item,i)=>item===items[i]))shuffled.push(shuffled.shift());
+ return shuffled;
+}
 function sortingRows(items,layout='list'){
  const columns=layout==='columns';
  const vertical=s=>String(s||'').split('').map(ch=>`<span style="display:block;line-height:1.05">${esc(ch)}</span>`).join('');
@@ -80,7 +87,7 @@ function blockHTML(b){
  if(t==='sorting'){
    const items=Array.isArray(cfg.items)?cfg.items:[];
    const pending=!Array.isArray(cfg.correct_order)||!cfg.correct_order.length;
-   return `<div class="bubble task sorting" data-id="${b.id}"><div class="text">${esc(txt)}</div>${sortingRows(items,cfg.layout||'list')}<div class="sortingNote muted">${pending?'Správné pořadí zatím není v administraci potvrzené. Pro test lze pořadí uložit a pokračovat.':'Seřaďte položky a ověřte pořadí.'}</div><button class="btn sortCheck">${pending?'Uložit pořadí a pokračovat':'Ověřit pořadí'}</button><div class="result muted"></div>${hintHTML(b)}</div>`;
+   return `<div class="bubble task sorting" data-id="${b.id}"><div class="text">${esc(txt)}</div>${sortingRows(initialSortingItems(b,items),cfg.layout||'list')}<div class="sortingNote muted">${pending?'Správné pořadí zatím není v administraci potvrzené. Pro test lze pořadí uložit a pokračovat.':'Seřaďte položky a ověřte pořadí.'}</div><button class="btn sortCheck">${pending?'Uložit pořadí a pokračovat':'Ověřit pořadí'}</button><div class="result muted"></div>${hintHTML(b)}</div>`;
  }
  if(t==='logic_grid'){
    return `<div class="bubble task logic-grid-task" data-id="${b.id}"><div class="text">${esc(txt)}</div>${logicGridHTML(cfg)}<button class="btn logicCheck">Ověřit tabulku</button><div class="result muted"></div>${hintHTML(b)}</div>`;
