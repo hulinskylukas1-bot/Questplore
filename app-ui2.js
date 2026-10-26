@@ -19,7 +19,7 @@ function markSolvedUI(w,b){
      if(!box)return;
      box.querySelectorAll('.quizopt').forEach(x=>x.disabled=true);
      const btn=box.querySelector(`.quizopt[data-i="${Number(oi)}"]`);
-     if(btn)btn.classList.add('selected');
+     if(btn)btn.classList.add('selected','quiz-correct');
      const rr=box.querySelector('.result'); if(rr)rr.textContent='Správně.';
    });
  }
