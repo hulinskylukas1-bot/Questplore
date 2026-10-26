@@ -1061,6 +1061,10 @@ function smartFields(block,content){
     const url=c.url||'';
     html+=`<label>Veřejná URL média<input class="smart-media" value="${esc(url)}" placeholder="Nahraj soubor nebo vlož URL"></label><div class="asset-row"><label>Soubor<input class="smart-asset-file" type="file" accept="${t==='image'?'image/*':'image/*,application/pdf'}"></label><button type="button" class="secondary upload-asset">Nahrát soubor</button></div><div class="asset-status">${c.storage_path?`Uloženo: ${esc(c.storage_path)}`:''}</div>${t==='image'&&url?`<div class="asset-preview"><img src="${esc(url)}" alt="Náhled"></div>`:''}`;
   }
+  if(t!=='image'&&t!=='document'){
+    const imageUrl=c.image_url||'';
+    html+=`<div class="block-image-editor"><label>Obrázek k bloku (volitelný)<input class="smart-image-url" value="${esc(imageUrl)}" placeholder="Veřejná URL obrázku nebo nahrajte soubor"></label><div class="asset-row"><label>Vybrat obrázek<input class="smart-image-file" type="file" accept="image/*"></label><button type="button" class="secondary upload-block-image">Nahrát obrázek</button></div><div class="image-upload-status asset-status"></div><div class="block-image-preview asset-preview">${imageUrl?`<img src="${esc(imageUrl)}" alt="Náhled přiloženého obrázku">`:''}</div></div>`;
+  }
   if(HINTABLE_TYPES.has(t)){
     const hints=arr(c.hints).map(h=>typeof h==='string'?h:(h.text??h.content??''));
     html+=`<div class="smart-grid hint-grid"><label>Nápověda 1<textarea class="smart-hint-1" rows="3" placeholder="První, jemnější nápověda">${esc(hints[0]||'')}</textarea></label><label>Nápověda 2<textarea class="smart-hint-2" rows="3" placeholder="Druhá, konkrétnější nápověda">${esc(hints[1]||'')}</textarea></label></div>`;
@@ -1082,10 +1086,32 @@ function collectSmart(card,block,originalContent){
   if(q('.smart-required'))config.required=q('.smart-required').checked;if(q('.smart-store-evidence'))config.store_as_evidence=q('.smart-store-evidence').checked;if(q('.smart-manual-review'))config.manual_review=q('.smart-manual-review').checked;
   if(q('.smart-button-label'))config.button_label=q('.smart-button-label').value.trim()||'Pokračovat';
   if(q('.smart-media'))config.url=q('.smart-media').value.trim();
+  if(q('.smart-image-url')){const u=q('.smart-image-url').value.trim();if(u)config.image_url=u;else{delete config.image_url;delete config.image_storage_path;}}
   if(q('.smart-hint-1')||q('.smart-hint-2'))config.hints=[q('.smart-hint-1')?.value.trim()||'',q('.smart-hint-2')?.value.trim()||''].filter(Boolean);
   return {content,config};
 }
 
+async function uploadBlockImage(block,card){
+  const input=card.querySelector('.smart-image-file'),status=card.querySelector('.image-upload-status');
+  const file=input?.files?.[0];if(!file){status.textContent='Vyber obrázek.';return}
+  if(!file.type.startsWith('image/')){status.textContent='Soubor musí být obrázek.';return}
+  if(file.size>15*1024*1024){status.textContent='Obrázek je větší než 15 MB.';return}
+  const safe=(file.name||'image').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-100);
+  const path=`${game.slug}/v${version.version_number}/${selectedStage.id}/${crypto.randomUUID()}-${safe}`;
+  const btn=card.querySelector('.upload-block-image');if(btn)btn.disabled=true;
+  status.textContent='Nahrávám obrázek…';
+  try{
+    const {error}=await supabase.storage.from('game-assets').upload(path,file,{upsert:false,contentType:file.type});
+    if(error)throw error;
+    const {data}=supabase.storage.from('game-assets').getPublicUrl(path);
+    const url=data.publicUrl;
+    const urlInput=card.querySelector('.smart-image-url');urlInput.value=url;
+    block.config={...(block.config||{}),image_url:url,image_storage_path:path};
+    const preview=card.querySelector('.block-image-preview');if(preview)preview.innerHTML=`<img src="${esc(url)}" alt="Náhled přiloženého obrázku">`;
+    status.textContent='Nahráno. Pro potvrzení změny klikni na Uložit blok.';
+  }catch(e){status.textContent='Nahrání selhalo: '+errText(e)}
+  finally{if(btn)btn.disabled=false}
+}
 async function uploadAsset(block,card){
   const input=card.querySelector('.smart-asset-file'),status=card.querySelector('.asset-status'),urlInput=card.querySelector('.smart-media');const file=input?.files?.[0];
   if(!file){status.textContent='Vyber soubor.';return}
@@ -1117,7 +1143,7 @@ function renderBlocks(blocks){
   const host=$('blocks');host.innerHTML='';
   blocks.forEach((block,i)=>{const tr=contentFor(block),content=tr?.content||{},card=document.createElement('article');card.className='block';card.innerHTML=`<div class="block-head"><div class="block-type"><span>${i+1}.</span><span>${esc(BLOCK_LABELS[block.block_type]||block.block_type)}</span></div><div class="block-head-actions"><span class="pos">${esc(block.block_type)}</span><button class="secondary move-up" ${isReadOnly()||i===0?'disabled':''}>↑</button><button class="secondary move-down" ${isReadOnly()||i===blocks.length-1?'disabled':''}>↓</button></div></div><div class="block-body"><div class="smart-fields">${smartFields(block,content)}</div><details class="advanced"><summary>Pokročilé nastavení JSON</summary><label>Lokalizovaný obsah (JSON)<textarea class="json content-json" ${isReadOnly()?'disabled':''}>${esc(JSON.stringify(content,null,2))}</textarea></label><label>Herní logika / config (JSON)<textarea class="json config-json" ${isReadOnly()?'disabled':''}>${esc(JSON.stringify(block.config||{},null,2))}</textarea></label></details><div class="block-actions"><button class="danger delete-block" ${isReadOnly()?'disabled':''}>Smazat blok</button><button class="secondary test-block">Otestovat</button><button class="save-block" ${isReadOnly()?'disabled':''}>Uložit blok</button></div></div>`;
     if(isReadOnly())card.querySelectorAll('.smart-fields input,.smart-fields textarea,.smart-fields select,.smart-fields button').forEach(x=>x.disabled=true);
-    card.querySelector('.save-block').onclick=()=>saveBlock(block,tr,card,content);card.querySelector('.test-block').onclick=()=>testBlock(block,tr,card,content);card.querySelector('.delete-block').onclick=()=>deleteBlock(block);card.querySelector('.move-up').onclick=()=>moveBlock(i,-1);card.querySelector('.move-down').onclick=()=>moveBlock(i,1);const up=card.querySelector('.upload-asset');if(up)up.onclick=()=>uploadAsset(block,card);host.appendChild(card)});
+    card.querySelector('.save-block').onclick=()=>saveBlock(block,tr,card,content);card.querySelector('.test-block').onclick=()=>testBlock(block,tr,card,content);card.querySelector('.delete-block').onclick=()=>deleteBlock(block);card.querySelector('.move-up').onclick=()=>moveBlock(i,-1);card.querySelector('.move-down').onclick=()=>moveBlock(i,1);const up=card.querySelector('.upload-asset');if(up)up.onclick=()=>uploadAsset(block,card);const imageUp=card.querySelector('.upload-block-image');if(imageUp)imageUp.onclick=()=>uploadBlockImage(block,card);host.appendChild(card)});
 }
 async function persistBlockEdits(block,tr,card,originalContent){
   let {content,config}=collectSmart(card,block,originalContent);
