@@ -94,3 +94,22 @@
 
 /* Images attached to ordinary game blocks */
 .block-illustration{display:block;width:auto;max-width:100%;height:auto;max-height:520px;object-fit:contain;margin:14px auto;border-radius:10px;background:#fff}
+
+/* Časovač hry */
+.gameTimer{font-variant-numeric:tabular-nums;font-size:13px;font-weight:700;color:#e8c77a;padding:6px 9px;border:1px solid rgba(232,199,122,.35);border-radius:999px;white-space:nowrap}
+.finishBubble .text{white-space:pre-line;font-weight:700}
+/* Ukazatel vzdálenosti a směru */
+.gpsGuide{margin:10px 0}
+.guideBox{display:flex;align-items:center;gap:14px;margin-top:10px;padding:12px;border:1px solid rgba(232,199,122,.35);border-radius:12px;background:rgba(232,199,122,.06)}
+.guideBox.hidden,.guideArrow.hidden{display:none}
+.guideArrow{width:54px;height:54px;flex:0 0 54px;display:grid;place-items:center;border-radius:50%;border:2px solid #e8c77a;color:#e8c77a;font-size:26px;transition:transform .25s linear}
+.guideArrow span{display:block;transform:rotate(-90deg)}
+.guideInfo{min-width:0}
+.guideDist{font-weight:700}
+.guideDir,.guideAcc{font-size:13px}
+
+/* Hodnocení hry */
+.stars{display:flex;gap:6px;margin:10px 0}
+.star{font-size:30px;line-height:1;background:none;border:0;padding:2px 4px;color:#555b66;cursor:pointer}
+.star.on{color:#e8c77a}
+.ratingComment{width:100%;margin:6px 0 10px;background:#111419;color:inherit;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px;font:inherit}
