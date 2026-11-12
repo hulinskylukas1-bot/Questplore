@@ -39,3 +39,8 @@ Funkce bez přihlášení si ověřují token relace hráče uvnitř.
 - Odstranit `create-test-order` a `complete-test-order` (kdokoliv je může volat a získat herní kód zdarma).
 - V Supabase Dashboardu smazat vyřazené vývojové funkce (vrací `410 Gone`).
 - Zapnout ochranu proti uniklým heslům (Authentication → Policies, vyžaduje placený tarif).
+
+## Časové limity
+
+- **Hra:** po prvním zadání kódu má hráč `games.session_hours` hodin (výchozí 24) na dokončení. Konec je v `game_sessions.expires_at`. Po vypršení `save_game_progress` odmítne ukládání (`SESSION_EXPIRED`) a přehrávač hru zamkne. Dokončená hra se nezamyká. Správce hru prodlouží v Hráči a kódy (`admin_extend_session`).
+- **Dárkový poukaz:** platnost 1 rok od vydání (`licenses.expires_at`). Nepoužitý poukaz po tomto datu hru nespustí (`LICENSE_EXPIRED`). Jakmile hra běží, platí limit hry.
