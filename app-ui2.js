@@ -436,6 +436,7 @@ async function boot(code){
 }
 function entry(){
  root.innerHTML=`<div class="shell"><section class="case"><div class="casehead"><h1>Questplore</h1></div><div class="bubble task"><div class="text">Zadejte kód hry</div><div class="answer"><input id="gameCode" value="" placeholder="Kód hry" autocomplete="off" autocapitalize="characters"><button id="startGame" class="btn">Vstoupit do hry</button></div><div id="entryError" class="result muted"></div></div></section></div>`;
+ try{const pre=new URLSearchParams(location.search).get('code');if(pre){const inp=document.getElementById('gameCode');if(inp)inp.value=pre.trim().slice(0,40)}}catch{}
  document.getElementById('startGame').onclick=async()=>{
    const btn=document.getElementById('startGame'),err=document.getElementById('entryError');
    try{
