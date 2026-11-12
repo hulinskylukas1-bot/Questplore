@@ -298,12 +298,26 @@ async function openArchive(){
  });
 }
 
+let expiredLocked=false;
+function lockExpired(){
+ if(expiredLocked)return;
+ expiredLocked=true;
+ stopTimerTick();
+ if(syncTimer){clearInterval(syncTimer);syncTimer=null}
+ closeArchive();closeExitMenu();
+ root.innerHTML=`<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><button id="expOther" class="exitGameBtn" type="button">Jiný kód</button></div>
+ <section class="case"><div class="casehead"><h1>Čas na hru vypršel</h1></div>
+ <div class="bubble"><div class="text">Čas na dokončení hry uplynul a hra pro tento kód skončila. K rozehrané hře se už nelze vrátit. Děkujeme, že jste to zkusili.</div></div></section></div>`;
+ document.getElementById('expOther').onclick=clearLocalSession;
+}
 async function applyRemoteProgress(force=false){
  if(!session||applyingRemote||!data)return;
  applyingRemote=true;
  try{
    const {data:remote,error}=await rpc('get_session_progress',{p_session_token:session.session_token});
    if(error||!remote)return;
+   if(remote.expires_at){session.expiresAtMs=Date.parse(remote.expires_at)||0;if(session.expiresAtMs-Date.now()>3600000)session.warnedHour=false}
+   if(remote.expired){lockExpired();return}
    const rev=Number(remote.revision||0);
    if(!force&&rev<=Number(session.revision||0))return;
 
@@ -360,6 +374,7 @@ function setupSync(){
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)applyRemoteProgress()},{passive:true});
 }
 function clearLocalSession(){
+ expiredLocked=false;
  closeArchive();
  if(syncTimer){clearInterval(syncTimer);syncTimer=null}
  localStorage.removeItem(SESSION_KEY);
@@ -419,13 +434,14 @@ async function boot(code){
    });
    const txt=await res.text();
    try{payload=txt?JSON.parse(txt):null}catch{payload={message:txt}}
-   if(!res.ok||!payload?.ok)throw new Error(payload?.error||payload?.message||`HTTP ${res.status}`);
+   if(!res.ok||!payload?.ok)throw new Error([payload?.error,payload?.message].filter(Boolean).join(': ')||`HTTP ${res.status}`);
  }catch(e){
    if(e?.name==='AbortError')throw new Error('START_TIMEOUT');
    throw e;
  }finally{clearTimeout(timer)}
  const ss=payload.session;
- session={...ss,code,revision:Number(ss.revision||0)}; localStorage.setItem(SESSION_KEY,JSON.stringify({token:ss.session_token,code}));
+ session={...ss,code,revision:Number(ss.revision||0),expiresAtMs:ss.expires_at?(Date.parse(ss.expires_at)||0):0,warnedHour:false}; localStorage.setItem(SESSION_KEY,JSON.stringify({token:ss.session_token,code}));
+ if(ss.expired){lockExpired();return}
  data=payload.content; if(!data?.stages)throw new Error('GAME_CONTENT_UNAVAILABLE');
  const saved=ss.state||{}; if(Number.isInteger(saved.stageIndex))stageIndex=Math.max(0,Math.min(saved.stageIndex,data.stages.length-1)); if(Number.isInteger(saved.cursor))cursor=Math.max(0,saved.cursor);
  state.lastChoice=saved.lastChoice??null; state.choices=saved.choices||{}; state.solved=saved.solved||{}; state.responses=saved.responses||{}; state.quizAnswers=saved.quizAnswers||{};
@@ -446,7 +462,7 @@ function entry(){
    }catch(e){
      entry();
      const box=document.getElementById('entryError');
-     if(box)box.textContent=e.message.includes('INVALID_GAME_CODE')?'Neplatný kód hry.':e.message.includes('DEVICE_LIMIT_REACHED')?'Tato hra už je připojena na maximálním počtu zařízení.':e.message.includes('GAME_CONTENT_UNAVAILABLE')?'Obsah hry se nepodařilo načíst. Zkuste to znovu.':e.message.includes('START_TIMEOUT')?'Načítání trvalo příliš dlouho. Zkuste to znovu.':`Hru se nepodařilo otevřít: ${e.message}`;
+     if(box)box.textContent=e.message.includes('INVALID_GAME_CODE')?'Neplatný kód hry.':e.message.includes('DEVICE_LIMIT_REACHED')?'Tato hra už je připojena na maximálním počtu zařízení.':e.message.includes('LICENSE_EXPIRED')?'Platnost tohoto kódu vypršela.':e.message.includes('GAME_CONTENT_UNAVAILABLE')?'Obsah hry se nepodařilo načíst. Zkuste to znovu.':e.message.includes('START_TIMEOUT')?'Načítání trvalo příliš dlouho. Zkuste to znovu.':`Hru se nepodařilo otevřít: ${e.message}`;
    }
  };
 }

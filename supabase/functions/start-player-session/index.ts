@@ -42,6 +42,7 @@ Deno.serve(async (req: Request) => {
       const msg = startError.message || "START_FAILED";
       if (msg.includes("INVALID_GAME_CODE")) return json({ error: "INVALID_GAME_CODE" }, 403);
       if (msg.includes("DEVICE_LIMIT_REACHED")) return json({ error: "DEVICE_LIMIT_REACHED" }, 403);
+      if (msg.includes("LICENSE_EXPIRED")) return json({ error: "LICENSE_EXPIRED" }, 403);
       throw startError;
     }
 

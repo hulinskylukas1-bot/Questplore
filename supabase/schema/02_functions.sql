@@ -3,6 +3,8 @@
 --   admin_player_lookup, admin_release_devices, admin_replace_license, admin_list_test_licenses,
 --   admin_delete_test_license, admin_game_history, is_test_order, log_game_event, submit_game_rating,
 --   mark_session_completed.
+-- Novější verze těchto funkcí jsou v migraci 20261112_time_limits_v1.sql (limit hry a platnost poukazu):
+--   start_or_resume_game, save_game_progress, get_session_progress, admin_player_lookup, admin_issue_gift_voucher.
 
 CREATE OR REPLACE FUNCTION public.is_admin()
  RETURNS boolean

@@ -1686,7 +1686,7 @@ async function loadHintStats(){
 
 /* ===== Hráči a herní kódy ===== */
 let playerInfo=null;
-const PLAYER_ERRORS={LICENSE_NOT_FOUND:'Tento kód nebyl nalezen.',ADMIN_REQUIRED:'Chybí administrátorské oprávnění.',LICENSE_ALREADY_REVOKED:'Tento kód už byl zrušen.'};
+const PLAYER_ERRORS={NO_ACTIVE_SESSION:'U tohoto kódu není rozehraná hra, kterou by šlo prodloužit.',LICENSE_NOT_FOUND:'Tento kód nebyl nalezen.',ADMIN_REQUIRED:'Chybí administrátorské oprávnění.',LICENSE_ALREADY_REVOKED:'Tento kód už byl zrušen.'};
 function playerErr(e){const m=errText(e);const k=Object.keys(PLAYER_ERRORS).find(x=>m.includes(x));return k?PLAYER_ERRORS[k]:m}
 function fmtDur(sec){if(sec==null)return '—';sec=Math.round(Number(sec));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60,p=n=>String(n).padStart(2,'0');return h?`${h}:${p(m)}:${p(s)}`:`${p(m)}:${p(s)}`}
 function fmtWhen(v){return v?new Date(v).toLocaleString('cs-CZ',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—'}
@@ -1747,8 +1747,11 @@ function renderPlayer(info,newCode=null){
       <div><div class="k">Použité nápovědy</div>${esc(info.hints_used??0)}</div>
       <div><div class="k">Zařízení</div>${devs.length} z ${esc(info.game?.max_devices??'?')}${devs.length?'<br><span class="muted">'+devs.map(d=>`${esc(d.name||'Zařízení')} (naposledy ${esc(fmtWhen(d.last_seen_at))})`).join('<br>')+'</span>':''}</div>
       <div><div class="k">Aktivováno</div>${esc(fmtWhen(l.activated_at))}</div>
+      <div><div class="k">Hra platí do</div>${sess?(sess.expires_at?esc(fmtWhen(sess.expires_at))+((sess.status==='active'&&new Date(sess.expires_at)<new Date())?' <span class="pill bad">VYPRŠELO</span>':''):'bez omezení'):'—'}</div>
+      <div><div class="k">Platnost kódu do</div>${l.expires_at?esc(fmtWhen(l.expires_at))+((!sess&&new Date(l.expires_at)<new Date())?' <span class="pill bad">VYPRŠELO</span>':''):'bez omezení'}</div>
     </div>
     ${l.status==='revoked'?'<div class="muted">Tento kód je zrušený a nelze ho dál používat.</div>':`<div class="player-actions">
+      ${sess&&sess.status==='active'?'<button type="button" id="extendBtn" class="secondary">Prodloužit hru o 24 hodin (výjimka)</button>':''}
       <button type="button" id="relDevBtn" class="secondary" ${devs.length?'':'disabled'}>Uvolnit zařízení</button>
       <button type="button" id="replKeepBtn">Nový kód – zachovat postup</button>
       <button type="button" id="replFreshBtn" class="danger">Nový kód – začít od začátku</button>
@@ -1758,6 +1761,11 @@ function renderPlayer(info,newCode=null){
   </article>`;
   const copy=$('copyNewCode');if(copy)copy.onclick=async()=>{try{await navigator.clipboard.writeText($('newCodeOut').value)}catch{$('newCodeOut').select();document.execCommand('copy')}toast('Kód zkopírován')};
   const run=async(btn,fn)=>{btn.disabled=true;try{await fn()}catch(e){alert('Akce se nezdařila: '+playerErr(e))}finally{btn.disabled=false}};
+  const ext=$('extendBtn');if(ext)ext.onclick=()=>run(ext,async()=>{
+    if(!confirm('Hra pro hráče po vypršení 24 hodin normálně definitivně končí. Prodlužujte jen ve výjimečných případech, například při technické chybě. Prodloužit o 24 hodin? Pokud už čas vypršel, počítá se znovu od teď a hráč musí stránku znovu načíst.'))return;
+    const {error}=await supabase.rpc('admin_extend_session',{p_license_id:l.id,p_hours:24});if(error)throw error;
+    toast('Hra prodloužena o 24 hodin');await lookupPlayer(l.code);
+  });
   const rel=$('relDevBtn');if(rel)rel.onclick=()=>run(rel,async()=>{
     if(!confirm('Uvolnit všechna zařízení tohoto kódu? Hráči se pak budou moci znovu přihlásit kódem.'))return;
     const {error}=await supabase.rpc('admin_release_devices',{p_license_id:l.id});if(error)throw error;
@@ -1802,6 +1810,7 @@ function sessionState(r){
   if(r.status==='completed')return {key:'done',text:'dohráno'};
   const idle=Date.now()-new Date(r.last_activity||r.started_at).getTime();
   const where=r.stage_name?`část ${r.stage_position??'?'}/${r.stages_total??'?'} – ${r.stage_name}`:'';
+  if(r.expires_at&&new Date(r.expires_at).getTime()<Date.now())return {key:'abandoned',text:`čas vypršel${where?' – '+where:''}`,where,expired:true};
   if(idle>ABANDONED_AFTER_MS)return {key:'abandoned',text:`opuštěno${where?' – '+where:''}`,where};
   return {key:'playing',text:`právě hrají${where?' – '+where:''}`,where};
 }
@@ -1822,7 +1831,7 @@ function renderHistory(){
     const by=new Map();
     ab.forEach(r=>{const k=`${r.game_name}|${r.stage_position??0}|${r.stage_name||'Neznámá část'}`;const x=by.get(k)||{game:r.game_name,pos:r.stage_position,name:r.stage_name||'Neznámá část',n:0,tasks:new Map()};x.n++;if(r.current_task)x.tasks.set(r.current_task,(x.tasks.get(r.current_task)||0)+1);by.set(k,x)});
     box.classList.remove('hidden');
-    box.innerHTML='<strong>Kde hráči hru opustili</strong><div class="muted" style="margin:2px 0 8px">Nedohrané hry bez aktivity déle než 3 hodiny.</div>'+[...by.values()].sort((x,y)=>y.n-x.n).map(x=>`<div class="dropoff-row"><div>${esc(x.game)} – část ${esc(x.pos??'?')}: ${esc(x.name)}${x.tasks.size?`<div class="muted" style="font-size:12px">naposledy u úkolu: ${esc(shortText([...x.tasks.keys()][0],80))}</div>`:''}</div><div>${x.n}×</div></div>`).join('');
+    box.innerHTML='<strong>Kde hráči hru opustili</strong><div class="muted" style="margin:2px 0 8px">Nedohrané hry, kterým vypršel čas, nebo bez aktivity déle než 3 hodiny.</div>'+[...by.values()].sort((x,y)=>y.n-x.n).map(x=>`<div class="dropoff-row"><div>${esc(x.game)} – část ${esc(x.pos??'?')}: ${esc(x.name)}${x.tasks.size?`<div class="muted" style="font-size:12px">naposledy u úkolu: ${esc(shortText([...x.tasks.keys()][0],80))}</div>`:''}</div><div>${x.n}×</div></div>`).join('');
   }
 }
 const EVENT_LABELS={
@@ -2090,17 +2099,17 @@ function renderGifts(rows){
       const amount=amountRaw&&Number.isFinite(Number(amountRaw))&&Number(amountRaw)>0?Math.round(Number(amountRaw)):null;
       const {data,error}=await supabase.rpc('admin_issue_gift_voucher',{p_request_id:r.id,p_amount:amount});
       if(error){alert('Vydání se nezdařilo: '+errText(error));return}
-      toast('Poukaz vydán');openVoucher(r,data.code);showGifts();
+      toast('Poukaz vydán');openVoucher(r,data.code,data.expires_at);showGifts();
     });
     bind('.g-view',async()=>{
-      const {data,error}=await supabase.from('licenses').select('code').eq('id',r.license_id).single();
-      if(error){alert(errText(error));return}openVoucher(r,data.code);
+      const {data,error}=await supabase.from('licenses').select('code,expires_at').eq('id',r.license_id).single();
+      if(error){alert(errText(error));return}openVoucher(r,data.code,data.expires_at);
     });
     host.appendChild(el);
   });
 }
-function openVoucher(r,code){
-  $('voucherCard').innerHTML=`<span class="v-stamp">DÁRKOVÝ POUKAZ</span><div class="v-brand">QUESTPLORE</div><h3>Dárkový poukaz</h3><div class="v-game">${esc(r.games?.name||'')}</div>${r.recipient_name?`<p class="v-to">Pro: <b>${esc(r.recipient_name)}</b></p>`:''}${r.message?`<p class="v-msg">„${esc(r.message)}“</p>`:''}<div>Váš herní kód</div><div class="v-code">${esc(code)}</div><p class="v-how">Kód zadejte na <b>hulinskylukas1-bot.github.io/Questplore</b> a vyrazte s týmem do města. Od: ${esc(r.buyer_name)}</p>`;
+function openVoucher(r,code,expires){
+  $('voucherCard').innerHTML=`<span class="v-stamp">DÁRKOVÝ POUKAZ</span><div class="v-brand">QUESTPLORE</div><h3>Dárkový poukaz</h3><div class="v-game">${esc(r.games?.name||'')}</div>${r.recipient_name?`<p class="v-to">Pro: <b>${esc(r.recipient_name)}</b></p>`:''}${r.message?`<p class="v-msg">„${esc(r.message)}“</p>`:''}<div>Váš herní kód</div><div class="v-code">${esc(code)}</div>${expires?`<p class="v-how" style="margin-top:10px"><b>Platnost do ${esc(new Date(expires).toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'}))}</b></p>`:''}<p class="v-how">Kód zadejte na <b>hulinskylukas1-bot.github.io/Questplore</b> a vyrazte s týmem do města. Od: ${esc(r.buyer_name)}</p>`;
   $('voucherDialog').dataset.code=code;$('voucherDialog').showModal();
 }
 $('voucherClose').onclick=()=>$('voucherDialog').close();

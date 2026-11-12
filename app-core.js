@@ -81,7 +81,14 @@ function startTimer(saved){
  else if(Number(saved.elapsedSec)>0)state.startedAtMs=Date.now()-Number(saved.elapsedSec)*1000;
  else state.startedAtMs=Date.now();
  paintTimer();
- timerHandle=setInterval(paintTimer,1000);
+ timerHandle=setInterval(()=>{paintTimer();checkExpiry()},1000);
+}
+/* Limit času na dokončení hry (výchozí 24 hodin od zadání kódu) */
+function checkExpiry(){
+ if(!session||!session.expiresAtMs||state.finishedSec!=null||typeof lockExpired!=='function')return;
+ const rem=session.expiresAtMs-Date.now();
+ if(rem<=0){lockExpired();return}
+ if(rem<=3600000&&!session.warnedHour){session.warnedHour=true;showSyncNotice('Zbývá méně než hodina na dokončení hry.')}
 }
 function stopTimerTick(){if(timerHandle){clearInterval(timerHandle);timerHandle=null}}
 function freezeTimer(){
@@ -145,7 +152,10 @@ async function persistProgress(
    p_state:payload,
    p_device_token:deviceToken
  });
- if(error)throw error;
+ if(error){
+   if(String(error?.message||'').includes('SESSION_EXPIRED')&&typeof lockExpired==='function')lockExpired();
+   throw error;
+ }
  session.revision=result?.revision??session.revision??0;
  if(result?.state){
    state.lastChoice=result.state.lastChoice??state.lastChoice;
