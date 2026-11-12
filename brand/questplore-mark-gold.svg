@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="128" height="128" role="img" aria-label="Questplore">
+<title>Questplore</title>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(6 6)">
+<circle cx="42" cy="42" r="35.5" stroke="#e0b45c" stroke-width="9"/>
+<path d="M67.5 67.5L88 88" stroke="#e0b45c" stroke-width="11"/>
+<path d="M42 64C42 64 27 50 27 37A15 15 0 0 1 57 37C57 50 42 64 42 64Z" fill="#e0b45c" stroke="none"/>
+<circle cx="42" cy="37" r="5.5" fill="#0a0908" stroke="none"/>
+</g></svg>

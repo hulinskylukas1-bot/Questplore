@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 604 120" width="604" height="120" role="img" aria-label="Questplore">
+<title>Questplore</title>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="42" cy="48" r="35.5" stroke="#e0b45c" stroke-width="9"/>
+<path d="M67.5 73.5L87 93" stroke="#e0b45c" stroke-width="11"/>
+<path d="M42 70C42 70 27 56 27 43A15 15 0 0 1 57 43C57 56 42 70 42 70Z" fill="#e0b45c" stroke="none"/>
+<circle cx="42" cy="43" r="5.5" fill="#0a0908" stroke="none"/>
+<path d="M110 36.5V60A23.5 23.5 0 0 0 157 60M157 36.5V83.5M174 60H221A23.5 23.5 0 1 0 215.5 75.1M276 44C272 38 264 36.5 258 36.5C248 36.5 242 41 242 47.5C242 55 250 57 260 60C270 63 278 65 278 72.5C278 79.5 270 83.5 260 83.5C252 83.5 244 81 240 76M301 18V70C301 79 307 83.5 317 83.5H323M295 36.5H327M346 36.5V112M346 60A23.5 23.5 0 0 1 393 60A23.5 23.5 0 0 1 346 60M410 12.5V70C410 79 416 83.5 424 83.5M441 60A23.5 23.5 0 0 1 488 60A23.5 23.5 0 0 1 441 60M505 36.5V83.5M505 58C505 44 514 36.5 529 36.5M548 60H595A23.5 23.5 0 1 0 589.5 75.1" stroke="#e0b45c" stroke-width="9"/>
+</g></svg>
