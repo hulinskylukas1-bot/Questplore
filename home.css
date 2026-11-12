@@ -24,8 +24,8 @@ main{position:relative}
 
 /* Hlavička */
 .siteHeader{position:sticky;top:0;z-index:40;height:66px;padding:0 max(20px,calc((100vw - 1140px)/2));display:flex;align-items:center;justify-content:space-between;background:rgba(10,9,8,.84);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.06)}
-.brand{font-family:var(--mono);font-weight:800;letter-spacing:.22em;font-size:13px;text-decoration:none}
-.brand i{font-style:normal;color:var(--accent)}
+.brand{text-decoration:none}
+.brand{display:inline-flex;align-items:center}.brand img{display:block;height:30px;width:auto}.footer .brand img{height:26px}
 .nav{display:flex;align-items:center;gap:4px}
 .nav a{font-size:14px;color:var(--muted);text-decoration:none;padding:9px 12px;border-radius:10px;transition:.15s}
 .nav a:hover{color:#fff;background:rgba(255,255,255,.05)}
