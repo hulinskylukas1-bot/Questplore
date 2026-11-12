@@ -307,14 +307,8 @@ function lockExpired(){
  closeArchive();closeExitMenu();
  root.innerHTML=`<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><button id="expOther" class="exitGameBtn" type="button">Jiný kód</button></div>
  <section class="case"><div class="casehead"><h1>Čas na hru vypršel</h1></div>
- <div class="bubble"><div class="text">Čas vyhrazený na dokončení hry uplynul. Váš postup je uložený. Pokud potřebujete hru prodloužit nebo si myslíte, že jde o chybu, ozvěte se nám.</div></div>
- <div class="continuebar"><button id="expRetry" class="btn" type="button">Zkusit znovu</button></div></section></div>`;
+ <div class="bubble"><div class="text">Čas na dokončení hry uplynul a hra pro tento kód skončila. K rozehrané hře se už nelze vrátit. Děkujeme, že jste to zkusili.</div></div></section></div>`;
  document.getElementById('expOther').onclick=clearLocalSession;
- document.getElementById('expRetry').onclick=async()=>{
-   const code=session?.code||JSON.parse(localStorage.getItem(SESSION_KEY)||'null')?.code;
-   expiredLocked=false;
-   try{await boot(code)}catch(e){lockExpired()}
- };
 }
 async function applyRemoteProgress(force=false){
  if(!session||applyingRemote||!data)return;
