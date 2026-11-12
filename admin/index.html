@@ -131,10 +131,11 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
           <p>Najděte hráče podle kódu, uvolněte zařízení po ztrátě telefonu nebo vydejte nový kód a přeneste na něj rozehraný postup.</p>
           <div class="card-actions"><button id="openPlayersBtn">Otevřít hráče</button></div>
         </section>
-        <section class="dashboard-card">
+        <section class="dashboard-card wide-card">
           <div class="eyebrow">WEB</div>
-          <h2>Web Questplore</h2>
-          <p>Otevřete veřejnou stránku, kterou uvidí zákazníci při výběru a nákupu her.</p>
+          <h2>Hry na webu</h2>
+          <p>Určete, které hry uvidí zákazníci na webu Questplore. Změny se projeví hned po uložení, web není potřeba znovu nasazovat.</p>
+          <div id="webGamesList" class="web-games"><div class="muted">Načítám…</div></div>
           <div class="card-actions"><a class="button-link" href="../home.html" target="_blank" rel="noopener">Otevřít zákaznický web ↗</a></div>
         </section>
         <section class="dashboard-card">
@@ -483,6 +484,45 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
     </div>
   </dialog>
 
+  <style>
+.wide-card{grid-column:1/-1}
+.web-games{display:grid;gap:10px;margin:16px 0}
+.web-row{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;border:1px solid var(--line);background:#111419;border-radius:12px;padding:12px 14px}
+.web-row.is-hidden{opacity:.8}
+.web-row .wname{font-weight:700}
+.web-row .wsub{font-size:12px;color:var(--muted)}
+.web-row select{width:auto;min-width:180px}
+.web-row label.check{margin:0;white-space:nowrap}
+.web-row .wactions{display:flex;gap:6px}
+.status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;background:#555b66}
+.status-dot.listed{background:var(--ok)}.status-dot.coming_soon{background:var(--accent)}
+.cover-preview img{max-width:100%;max-height:180px;border-radius:10px;border:1px solid var(--line);margin-top:8px}
+@media(max-width:900px){.web-row{grid-template-columns:1fr}.web-row .wactions{justify-content:flex-start}}
+</style>
+  <dialog id="webGameDialog">
+    <div class="dialog-card">
+      <div class="eyebrow">WEB</div>
+      <h2 id="webGameTitle">Hra na webu</h2>
+      <label>Krátký slogan <span class="hint">jedna věta pod názvem hry</span>
+        <input id="webTagline" maxlength="140" placeholder="Např. Odhalte, co se skrývá za známými místy.">
+      </label>
+      <label>Popis na webu <span class="hint">prázdné = převezme se popis z nastavení hry</span>
+        <textarea id="webDescription" rows="5" maxlength="1200"></textarea>
+      </label>
+      <label>Úvodní obrázek <span class="hint">nepovinný, bez něj se zobrazí barevná ilustrace s iniciálami</span>
+        <input id="webCoverUrl" placeholder="Nahrajte soubor nebo vložte URL">
+      </label>
+      <div class="asset-row" style="display:flex;gap:10px;align-items:end"><label style="flex:1">Soubor<input id="webCoverFile" type="file" accept="image/*"></label><button type="button" id="webCoverUpload" class="secondary">Nahrát</button></div>
+      <div id="webCoverStatus" class="muted" style="font-size:13px"></div>
+      <div id="webCoverPreview" class="cover-preview"></div>
+      <div id="webGameMsg" class="muted"></div>
+      <div class="dialog-actions">
+        <button type="button" id="webGameCancel" class="secondary">Zrušit</button>
+        <button type="button" id="webGameSave">Uložit</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="mapPickDialog">
     <div class="dialog-card">
       <div class="eyebrow">GPS BOD</div>
@@ -793,6 +833,7 @@ async function showDashboard(){
   const {data,error}=await supabase.from('games').select('id,name,city,status,estimated_duration_min,estimated_duration_max,created_at').order('created_at');
   if(error)throw error;
   games=data||[];
+  loadWebGames().catch(()=>{});
   const host=$('dashboardGames');host.innerHTML='';
   if(!games.length){host.innerHTML='<div class="muted">Zatím není založena žádná hra.</div>';return}
   games.forEach(g=>{
@@ -1812,6 +1853,81 @@ $('histBody').addEventListener('click',async ev=>{
   if(error||!data?.signedUrl){box.innerHTML='<div class="muted">Fotografii se nepodařilo načíst.</div>';return}
   box.innerHTML=`<img src="${esc(data.signedUrl)}" alt="Fotodůkaz" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'muted',textContent:'Prohlížeč tento formát (např. HEIC z iPhonu) nezobrazí – použijte odkaz Stáhnout.'}))"><div><a href="${esc(data.signedUrl)}" target="_blank" rel="noopener">Otevřít / stáhnout originál</a></div>`;
 });
+
+
+/* ===== Hry na webu ===== */
+const WEB_STATUS={hidden:'Skrytá – na webu není',coming_soon:'Připravujeme',listed:'Zveřejněná'};
+let webGames=[],webPublished=new Set(),webEditing=null;
+async function loadWebGames(){
+  const host=$('webGamesList');
+  const [g,v]=await Promise.all([
+    supabase.from('games').select('id,name,slug,web_status,web_purchase,web_tagline,web_description,web_cover_url,web_sort,created_at').order('web_sort').order('created_at'),
+    supabase.from('game_versions').select('game_id').eq('status','published')
+  ]);
+  if(g.error){host.innerHTML=`<div class="muted">Hry se nepodařilo načíst: ${esc(errText(g.error))}</div>`;return}
+  webGames=g.data||[];webPublished=new Set((v.data||[]).map(x=>x.game_id));renderWebGames();
+}
+function renderWebGames(){
+  const host=$('webGamesList');host.innerHTML='';
+  if(!webGames.length){host.innerHTML='<div class="muted">Zatím není založena žádná hra.</div>';return}
+  webGames.forEach((gm,i)=>{
+    const published=webPublished.has(gm.id);
+    const el=document.createElement('div');el.className='web-row'+(gm.web_status==='hidden'?' is-hidden':'');
+    el.innerHTML=`<div><div class="wname"><span class="status-dot ${esc(gm.web_status)}"></span>${esc(gm.name)}</div><div class="wsub">${published?'má vydanou verzi':'<b>nemá vydanou verzi</b> – nákup nebude dostupný'}${gm.web_tagline?' · „'+esc(gm.web_tagline)+'“':''}</div></div>
+      <select class="w-status" aria-label="Zobrazení na webu">${Object.entries(WEB_STATUS).map(([k,l])=>`<option value="${k}" ${gm.web_status===k?'selected':''}>${esc(l)}</option>`).join('')}</select>
+      <label class="check"><input type="checkbox" class="w-buy" ${gm.web_purchase?'checked':''} ${gm.web_status==='listed'?'':'disabled'}> Povolit nákup</label>
+      <div class="wactions"><button type="button" class="secondary w-up" ${i===0?'disabled':''} title="Posunout výš">↑</button><button type="button" class="secondary w-down" ${i===webGames.length-1?'disabled':''} title="Posunout níž">↓</button><button type="button" class="secondary w-edit">Text a obrázek</button></div>`;
+    el.querySelector('.w-status').onchange=e=>saveWebGame(gm,{web_status:e.target.value});
+    el.querySelector('.w-buy').onchange=e=>saveWebGame(gm,{web_purchase:e.target.checked});
+    el.querySelector('.w-up').onclick=()=>moveWebGame(i,-1);
+    el.querySelector('.w-down').onclick=()=>moveWebGame(i,1);
+    el.querySelector('.w-edit').onclick=()=>openWebGameDialog(gm);
+    host.appendChild(el);
+  });
+}
+async function saveWebGame(gm,patch){
+  if(patch.web_status==='listed'&&!webPublished.has(gm.id)&&!confirm('Hra nemá vydanou verzi. Na webu se zobrazí, ale nákup nebude dostupný, dokud verzi nepublikujete. Pokračovat?')){renderWebGames();return}
+  const {error}=await supabase.from('games').update(patch).eq('id',gm.id);
+  if(error){alert('Uložení se nezdařilo: '+errText(error));await loadWebGames();return}
+  Object.assign(gm,patch);toast('Uloženo – web se aktualizuje hned');renderWebGames();
+}
+async function moveWebGame(i,delta){
+  const j=i+delta;if(j<0||j>=webGames.length)return;
+  const arr2=[...webGames];[arr2[i],arr2[j]]=[arr2[j],arr2[i]];
+  try{
+    for(let k=0;k<arr2.length;k++){const {error}=await supabase.from('games').update({web_sort:k+1}).eq('id',arr2[k].id);if(error)throw error}
+    webGames=arr2.map((x,k)=>({...x,web_sort:k+1}));renderWebGames();toast('Pořadí uloženo');
+  }catch(e){alert('Změna pořadí se nezdařila: '+errText(e));await loadWebGames()}
+}
+function openWebGameDialog(gm){
+  webEditing=gm;$('webGameTitle').textContent=gm.name;
+  $('webTagline').value=gm.web_tagline||'';$('webDescription').value=gm.web_description||'';$('webCoverUrl').value=gm.web_cover_url||'';
+  $('webCoverStatus').textContent='';$('webGameMsg').textContent='';$('webCoverFile').value='';
+  $('webCoverPreview').innerHTML=gm.web_cover_url?`<img src="${esc(gm.web_cover_url)}" alt="Náhled">`:'';
+  $('webGameDialog').showModal();
+}
+$('webGameCancel').onclick=()=>$('webGameDialog').close();
+$('webCoverUpload').onclick=async()=>{
+  const f=$('webCoverFile').files?.[0],st=$('webCoverStatus');
+  if(!f){st.textContent='Vyberte obrázek.';return}
+  if(!f.type.startsWith('image/')){st.textContent='Soubor musí být obrázek.';return}
+  if(f.size>8*1024*1024){st.textContent='Obrázek je větší než 8 MB.';return}
+  const safe=(f.name||'cover').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-80);
+  const path=`web/${webEditing.slug}/${crypto.randomUUID()}-${safe}`;
+  st.textContent='Nahrávám…';
+  const {error}=await supabase.storage.from('game-assets').upload(path,f,{upsert:false,contentType:f.type});
+  if(error){st.textContent='Nahrání selhalo: '+errText(error);return}
+  const {data}=supabase.storage.from('game-assets').getPublicUrl(path);
+  $('webCoverUrl').value=data.publicUrl;$('webCoverPreview').innerHTML=`<img src="${esc(data.publicUrl)}" alt="Náhled">`;st.textContent='Nahráno. Potvrďte tlačítkem Uložit.';
+};
+$('webGameSave').onclick=async()=>{
+  if(!webEditing)return;
+  $('webGameMsg').textContent='Ukládám…';
+  const patch={web_tagline:$('webTagline').value.trim()||null,web_description:$('webDescription').value.trim()||null,web_cover_url:$('webCoverUrl').value.trim()||null};
+  const {error}=await supabase.from('games').update(patch).eq('id',webEditing.id);
+  if(error){$('webGameMsg').textContent='Uložení se nezdařilo: '+errText(error);return}
+  Object.assign(webEditing,patch);$('webGameDialog').close();toast('Uloženo');renderWebGames();
+};
 
 const recoveryInUrl=location.hash.includes('type=recovery')||new URLSearchParams(location.search).get('type')==='recovery';
 const {data:{session}}=await supabase.auth.getSession();

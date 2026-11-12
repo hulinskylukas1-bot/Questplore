@@ -3,135 +3,153 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#0b0d10">
-  <title>Questplore · Příběhy, které se odehrávají kolem vás</title>
-  <meta name="description" content="Questplore jsou venkovní příběhové hry, ve kterých se město mění v herní plán. První hra: Spiknutí.">
-  <link rel="stylesheet" href="home.css?v=2">
+  <meta name="theme-color" content="#0a0c0b">
+  <title>Questplore · Venkovní příběhové hry</title>
+  <meta name="description" content="Questplore jsou venkovní příběhové hry, ve kterých se město mění v herní plán. Stačí telefon, tým a chuť objevovat.">
+  <meta property="og:title" content="Questplore · Venkovní příběhové hry">
+  <meta property="og:description" content="Město je plné příběhů. Stačí je odhalit.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="./nadvorni-start.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="home.css?v=4">
 </head>
 <body>
-  <div class="noise"></div>
+  <a class="skip" href="#hry">Přeskočit na hry</a>
 
-  <header class="siteHeader">
-    <a class="brand" href="./home.html">QUESTPLORE</a>
-    <nav class="nav">
+  <header class="siteHeader" id="top">
+    <a class="brand" href="./home.html" aria-label="Questplore – úvod">QUESTPLORE</a>
+    <nav class="nav" aria-label="Hlavní navigace">
+      <a href="#hry">Hry</a>
       <a href="#jak-to-funguje">Jak to funguje</a>
-      <a href="#spiknuti">Spiknutí</a>
+      <a href="#otazky">Otázky</a>
       <a class="navCta" href="./">Mám kód</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
-      <div class="heroGlow"></div>
       <div class="heroInner">
-        <div class="eyebrow">VENKOVNÍ PŘÍBĚHOVÉ HRY</div>
+        <p class="eyebrow">VENKOVNÍ PŘÍBĚHOVÉ HRY</p>
         <h1>Město je plné příběhů.<br><span>Stačí je odhalit.</span></h1>
         <p class="heroLead">
-          Questplore propojuje skutečná místa, fyzické stopy a digitálního vypravěče.
-          Vyrazíte do ulic, řešíte úkoly a postupně skládáte příběh, který se odehrává přímo kolem vás.
+          Vyrazte s týmem do ulic, hledejte skutečné stopy a nechte se vést příběhem,
+          který se odehrává přímo kolem vás. Stačí telefon, nic se neinstaluje.
         </p>
         <div class="heroActions">
-          <a class="btn primary" href="#spiknuti">Objevit první hru</a>
-          <a class="btn secondary" href="./">Mám herní kód</a>
+          <a class="btn primary" href="#hry">Vybrat hru</a>
+          <form class="codeForm" action="./" method="get" aria-label="Zadat herní kód">
+            <label class="sr" for="heroCode">Herní kód</label>
+            <input id="heroCode" name="code" placeholder="Máte herní kód?" autocomplete="off" autocapitalize="characters" spellcheck="false">
+            <button class="btn ghost" type="submit">Hrát</button>
+          </form>
         </div>
-        <div class="heroMeta">
-          <span>📍 Praha</span>
-          <span>👥 Hra pro tým</span>
-          <span>📱 Až 3 zařízení</span>
-        </div>
+        <ul class="heroMeta" aria-label="Základní informace">
+          <li>📍 Skutečná místa</li>
+          <li>👥 Hra pro tým</li>
+          <li>📱 Jen telefon a internet</li>
+        </ul>
       </div>
     </section>
 
-    <section class="section" id="jak-to-funguje">
+    <section class="section" id="hry" aria-labelledby="hryTitle">
       <div class="sectionHead">
-        <div class="eyebrow">JAK TO FUNGUJE</div>
-        <h2>Váš telefon je průvodce.<br>Město je herní plán.</h2>
+        <p class="eyebrow">NAŠE HRY</p>
+        <h2 id="hryTitle">Vyberte si příběh.</h2>
       </div>
+      <div id="games" class="games" aria-live="polite" aria-busy="true">
+        <div class="skeleton"></div>
+      </div>
+      <p id="testNote" class="testNote hidden">Nákup je zatím v testovacím režimu a neúčtuje skutečné peníze.</p>
+    </section>
 
-      <div class="steps">
-        <article class="step">
-          <div class="stepNo">01</div>
+    <section class="section alt" id="jak-to-funguje" aria-labelledby="howTitle">
+      <div class="sectionHead">
+        <p class="eyebrow">JAK TO FUNGUJE</p>
+        <h2 id="howTitle">Telefon je průvodce.<br>Město je herní plán.</h2>
+      </div>
+      <ol class="steps">
+        <li class="step reveal">
+          <span class="stepIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+          </span>
           <h3>Získejte herní kód</h3>
-          <p>Po zakoupení hry obdržíte unikátní kód, kterým otevřete svůj příběh.</p>
-        </article>
-        <article class="step">
-          <div class="stepNo">02</div>
+          <p>Po zakoupení hry dostanete unikátní kód. Ten otevře váš příběh na jakémkoli telefonu.</p>
+        </li>
+        <li class="step reveal">
+          <span class="stepIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+          </span>
           <h3>Vyrazte na místo</h3>
-          <p>Hra vás provází skutečnými místy. Hledejte detaily, stopy a souvislosti kolem sebe.</p>
-        </article>
-        <article class="step">
-          <div class="stepNo">03</div>
-          <h3>Rozhodujte a postupujte</h3>
-          <p>Odpovídejte, fotografujte důkazy, pracujte s GPS a odemykejte další části příběhu.</p>
-        </article>
-      </div>
+          <p>Hra vás provede skutečnými místy. Hledejte detaily, stopy a souvislosti kolem sebe.</p>
+        </li>
+        <li class="step reveal">
+          <span class="stepIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8"/></svg>
+          </span>
+          <h3>Řešte a odhalujte</h3>
+          <p>Odpovídejte, fotografujte důkazy, ověřujte polohu a odemykejte další části příběhu.</p>
+        </li>
+      </ol>
     </section>
 
-    <section class="gameSection" id="spiknuti">
-      <div class="gameCard">
-        <div class="gameVisual">
-          <div class="seal">SP</div>
-          <div class="gameTag">PRVNÍ HRA QUESTPLORE</div>
-          <h2>Spiknutí</h2>
-          <p class="gameQuote">Některé stopy jsou příliš nápadné. Jiné čekají, až si jich někdo konečně všimne.</p>
-        </div>
-        <div class="gameInfo">
-          <div class="eyebrow">PRAHA · PŘÍBĚHOVÁ MĚSTSKÁ HRA</div>
-          <h3>Odhalte, co se skrývá za známými místy.</h3>
-          <p>
-            Spiknutí vás zavede do pražských ulic, kde budete hledat skutečné detaily,
-            pracovat s dokumenty a postupně odkrývat příběh, který se neodehrává na obrazovce,
-            ale přímo před vámi.
-          </p>
-
-          <div class="facts">
-            <div><span>Doporučeno</span><strong>2–6 hráčů</strong></div>
-            <div><span>Zařízení</span><strong>až 3 současně</strong></div>
-            <div><span>Forma</span><strong>venkovní hra</strong></div>
-          </div>
-
-          <div class="gameActions">
-            <a class="btn primary" href="./purchase.html">Vyzkoušet testovací nákup</a>
-            <a class="btn secondary" href="./">Spustit hru s kódem</a>
-          </div>
-          <p class="testNote">Prodejní stránka je nyní v testovacím režimu a neúčtuje skutečné peníze.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section why">
+    <section class="section" aria-labelledby="needTitle">
       <div class="sectionHead">
-        <div class="eyebrow">QUESTPLORE</div>
-        <h2>Ne escape room.<br>Ne audioprůvodce.</h2>
-        <p>
-          Příběh se neskrývá v jedné místnosti ani v telefonu. Je rozprostřený po městě
-          a digitální část vás pouze vede, když je potřeba.
-        </p>
+        <p class="eyebrow">CO BUDETE POTŘEBOVAT</p>
+        <h2 id="needTitle">Žádná příprava navíc.</h2>
       </div>
-      <div class="principles">
-        <div><strong>Skutečná místa</strong><span>Herní svět existuje kolem vás.</span></div>
-        <div><strong>Fyzické stopy</strong><span>Rozhodující detaily nejsou jen na displeji.</span></div>
-        <div><strong>Společná hra</strong><span>Jeden tým, více zařízení, sdílený postup.</span></div>
-        <div><strong>Příběh</strong><span>Úkoly mají význam, protože posouvají vyprávění.</span></div>
+      <ul class="needs">
+        <li class="reveal"><strong>Chytrý telefon</strong><span>S internetem a zapnutou polohou. Hra běží v prohlížeči, nic nestahujete.</span></li>
+        <li class="reveal"><strong>Malý tým</strong><span>Hraje se společně a postup se sdílí mezi zařízeními vašeho týmu.</span></li>
+        <li class="reveal"><strong>Čas a pohodlná obuv</strong><span>Hra vás vede venku. Délka je uvedená u každé hry.</span></li>
+      </ul>
+    </section>
+
+    <section class="section alt" id="otazky" aria-labelledby="faqTitle">
+      <div class="sectionHead">
+        <p class="eyebrow">ČASTÉ OTÁZKY</p>
+        <h2 id="faqTitle">Než vyrazíte.</h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>Musím si něco instalovat?</summary>
+          <p>Ne. Hra se otevře v prohlížeči po zadání herního kódu. Aby fungovalo ověření polohy, povolte prohlížeči přístup k poloze.</p>
+        </details>
+        <details>
+          <summary>Můžeme hrát na více telefonech?</summary>
+          <p>Ano, postup se sdílí mezi zařízeními vašeho týmu. Počet zařízení najdete u každé hry.</p>
+        </details>
+        <details>
+          <summary>Můžeme hru přerušit?</summary>
+          <p>Hra počítá s tím, že ji odehrajete v kuse. Když ji zavřete, po zadání kódu se vrátíte tam, kde jste skončili, ale čas hry běží dál.</p>
+        </details>
+        <details>
+          <summary>Jak dlouho hra trvá?</summary>
+          <p>Odhadovaná délka je uvedená u každé hry. Záleží na tom, jak rychle se vám bude dařit odhalovat stopy.</p>
+        </details>
+        <details>
+          <summary>Co když mi nefunguje poloha?</summary>
+          <p>Zkuste to venku, mimo úzké uličky a pod otevřeným nebem. Zkontrolujte, že je v telefonu zapnutá poloha a prohlížeč má k ní přístup.</p>
+        </details>
       </div>
     </section>
 
     <section class="finalCta">
       <div>
-        <div class="eyebrow">JSTE PŘIPRAVENI?</div>
+        <p class="eyebrow">JSTE PŘIPRAVENI?</p>
         <h2>První stopa čeká.</h2>
       </div>
-      <a class="btn primary" href="#spiknuti">Prozkoumat Spiknutí</a>
+      <a class="btn primary" href="#hry">Vybrat hru</a>
     </section>
   </main>
 
   <footer class="footer">
     <div class="brand">QUESTPLORE</div>
     <div class="footerText">Příběhy, které se odehrávají kolem vás.</div>
-    <div class="footerLinks">
-      <a href="./">Spustit hru</a>
-      <a href="./purchase.html">Testovací nákup</a>
-    </div>
+    <nav class="footerLinks" aria-label="Odkazy v patičce">
+      <a href="./">Spustit hru s kódem</a>
+      <a href="#top">Nahoru ↑</a>
+    </nav>
   </footer>
+
+  <script src="home.js?v=3" defer></script>
 </body>
 </html>
