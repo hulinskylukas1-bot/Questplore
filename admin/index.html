@@ -121,6 +121,18 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
           <div class="card-actions"><button id="openEmailsBtn">Otevřít e-maily</button></div>
         </section>
         <section class="dashboard-card">
+          <div class="eyebrow">RECENZE</div>
+          <h2>Recenze hráčů</h2>
+          <p>Hodnocení a komentáře po dohrání hry. Vyberte, které komentáře se zveřejní na webu. Zveřejnit jde jen komentář, se kterým hráč souhlasil.</p>
+          <div class="card-actions"><button id="openReviewsBtn">Otevřít recenze</button></div>
+        </section>
+        <section class="dashboard-card">
+          <div class="eyebrow">DÁRKOVÉ POUKAZY</div>
+          <h2>Objednávky poukazů</h2>
+          <p>Objednávky z webu. Po přijetí platby jedním klikem vydáte kód a vytisknete poukaz.</p>
+          <div class="card-actions"><button id="openGiftsBtn">Otevřít poukazy</button> <span id="giftNewBadge" class="pill test hidden"></span></div>
+        </section>
+        <section class="dashboard-card">
           <div class="eyebrow">HISTORIE</div>
           <h2>Historie her</h2>
           <p>Přehled dohraných her: datum, hráč, doba hraní a body. Každou hru lze rozkliknout a projít krok za krokem.</p>
@@ -232,6 +244,32 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
       <div id="historyMessage" class="muted"></div>
       <div id="historyDropoff" class="hidden"></div>
       <div class="history-table-wrap"><table class="history-table" id="historyTable"><thead><tr><th>Datum hry</th><th>E-mail hráče</th><th>Hra</th><th>Stav</th><th>Doba hraní</th><th>Body</th><th>Hodnocení</th><th>Chyby</th><th>Nápovědy</th><th>Zařízení</th></tr></thead><tbody id="historyBody"></tbody></table></div>
+    </main>
+  </section>
+
+  <section id="reviewsView" class="customers-view hidden">
+    <div class="customers-top">
+      <div><div class="eyebrow">QUESTPLORE</div><strong>Recenze hráčů</strong></div>
+      <div class="customers-actions"><button id="reviewsHomeBtn" class="secondary">← Přehled</button></div>
+    </div>
+    <main class="customers-main" style="max-width:1100px">
+      <div class="customers-headline"><div><div class="eyebrow">WEB</div><h1>Recenze hráčů</h1></div><button id="reviewsReloadBtn" class="secondary">↻ Načíst znovu</button></div>
+      <div class="tipbox" style="margin:0 0 16px">Na webu se zobrazí jen komentáře, které hráč výslovně povolil a které tady zveřejníte. Testovací hry se na webu nikdy nepočítají.</div>
+      <div id="reviewsMsg" class="muted"></div>
+      <div id="reviewsList" class="review-list"></div>
+    </main>
+  </section>
+
+  <section id="giftsView" class="customers-view hidden">
+    <div class="customers-top">
+      <div><div class="eyebrow">QUESTPLORE</div><strong>Dárkové poukazy</strong></div>
+      <div class="customers-actions"><button id="giftsHomeBtn" class="secondary">← Přehled</button></div>
+    </div>
+    <main class="customers-main" style="max-width:1100px">
+      <div class="customers-headline"><div><div class="eyebrow">OBJEDNÁVKY Z WEBU</div><h1>Dárkové poukazy</h1></div><button id="giftsReloadBtn" class="secondary">↻ Načíst znovu</button></div>
+      <div class="tipbox" style="margin:0 0 16px"><b>Postup:</b> zákazník odešle objednávku na webu → ozvete se mu s pokyny k platbě → po přijetí platby klikněte na <b>Vydat poukaz</b>. Vznikne herní kód a tištěný poukaz, který zákazníkovi pošlete.</div>
+      <div id="giftsMsg" class="muted"></div>
+      <div id="giftsList" class="gift-list"></div>
     </main>
   </section>
 
@@ -510,16 +548,57 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
       <label>Popis na webu <span class="hint">prázdné = převezme se popis z nastavení hry</span>
         <textarea id="webDescription" rows="5" maxlength="1200"></textarea>
       </label>
+      <label>Podrobný popis pro stránku hry <span class="hint">odstavce oddělte prázdným řádkem</span>
+        <textarea id="webDetails" rows="8" maxlength="4000"></textarea>
+      </label>
       <label>Úvodní obrázek <span class="hint">nepovinný, bez něj se zobrazí barevná ilustrace s iniciálami</span>
         <input id="webCoverUrl" placeholder="Nahrajte soubor nebo vložte URL">
       </label>
       <div class="asset-row" style="display:flex;gap:10px;align-items:end"><label style="flex:1">Soubor<input id="webCoverFile" type="file" accept="image/*"></label><button type="button" id="webCoverUpload" class="secondary">Nahrát</button></div>
       <div id="webCoverStatus" class="muted" style="font-size:13px"></div>
       <div id="webCoverPreview" class="cover-preview"></div>
+      <label>Galerie fotografií <span class="hint">zobrazí se na stránce hry</span></label>
+      <div id="webGallery" class="gallery-edit"></div>
+      <div class="asset-row" style="display:flex;gap:10px;align-items:end"><label style="flex:1">Přidat fotografii<input id="webGalleryFile" type="file" accept="image/*"></label><button type="button" id="webGalleryAdd" class="secondary">Přidat</button></div>
+      <div id="webGalleryStatus" class="muted" style="font-size:13px"></div>
       <div id="webGameMsg" class="muted"></div>
       <div class="dialog-actions">
         <button type="button" id="webGameCancel" class="secondary">Zrušit</button>
         <button type="button" id="webGameSave">Uložit</button>
+      </div>
+    </div>
+  </dialog>
+
+  <style>
+.review-list,.gift-list{display:grid;gap:10px}
+.review-card,.gift-card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:16px;display:grid;gap:8px}
+.review-head,.gift-head{display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap}
+.review-comment{white-space:pre-wrap;border-left:3px solid var(--line);padding-left:12px;color:#e7eaee}
+.rev-actions,.gift-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pill.ok{border-color:#2f6b42;color:var(--ok)}.pill.bad{border-color:#7a3036;color:var(--danger)}
+.gallery-edit{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.gallery-edit .g-item{position:relative;width:96px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.gallery-edit img{width:100%;height:100%;object-fit:cover}
+.gallery-edit button{position:absolute;top:2px;right:2px;padding:0 6px;font-size:12px;line-height:20px;background:#000a;color:#fff}
+#voucherDialog{width:min(640px,calc(100% - 24px))}
+.voucher{background:#f1ead9;color:#1a1710;border-radius:12px;padding:28px 26px;font-family:Georgia,serif;border:2px solid #1a1710;position:relative;text-align:center}
+.voucher .v-brand{letter-spacing:.3em;font-size:12px;font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.voucher h3{font-size:30px;margin:10px 0 2px;font-weight:500}
+.voucher .v-game{font-size:22px;margin:6px 0 14px}
+.voucher .v-to{font-size:16px;margin:0 0 6px}
+.voucher .v-msg{font-style:italic;margin:10px auto 16px;max-width:420px;white-space:pre-wrap}
+.voucher .v-code{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:26px;font-weight:800;letter-spacing:.12em;border:2px dashed #1a1710;padding:10px 18px;margin:8px 0}
+.voucher .v-how{font-size:13px;margin-top:14px;font-family:system-ui,sans-serif}
+.voucher .v-stamp{position:absolute;right:18px;top:16px;transform:rotate(12deg);border:2px solid #9a3a2c;color:#9a3a2c;font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:12px;letter-spacing:.14em;padding:4px 8px;border-radius:4px}
+@media print{body.print-voucher>*:not(#voucherDialog){display:none!important}body.print-voucher #voucherDialog{position:static!important;display:block!important;border:0;background:#fff;box-shadow:none;width:auto;max-width:none;margin:0;padding:0}body.print-voucher #voucherDialog .no-print{display:none!important}body.print-voucher #voucherDialog .dialog-card{background:#fff;padding:0}}
+</style>
+  <dialog id="voucherDialog">
+    <div class="dialog-card">
+      <div id="voucherCard" class="voucher"></div>
+      <div class="dialog-actions no-print" style="margin-top:16px">
+        <button type="button" id="voucherClose" class="secondary">Zavřít</button>
+        <button type="button" id="voucherCopy" class="secondary">Kopírovat kód</button>
+        <button type="button" id="voucherPrint">Tisk / uložit jako PDF</button>
       </div>
     </div>
   </dialog>
@@ -827,14 +906,14 @@ $('accountForm').addEventListener('submit',async e=>{
 
 
 function hideAdminViews(){
-  $('dashboardView').classList.add('hidden');$('emailView').classList.add('hidden');$('statsView').classList.add('hidden');$('customersView').classList.add('hidden');$('adminsView').classList.add('hidden');$('playersView').classList.add('hidden');$('historyView').classList.add('hidden');$('appView').classList.add('hidden');
+  $('dashboardView').classList.add('hidden');$('emailView').classList.add('hidden');$('statsView').classList.add('hidden');$('customersView').classList.add('hidden');$('adminsView').classList.add('hidden');$('playersView').classList.add('hidden');$('reviewsView').classList.add('hidden');$('giftsView').classList.add('hidden');$('historyView').classList.add('hidden');$('appView').classList.add('hidden');
 }
 async function showDashboard(){
   hideAdminViews();$('dashboardView').classList.remove('hidden');
   const {data,error}=await supabase.from('games').select('id,name,city,status,estimated_duration_min,estimated_duration_max,created_at').order('created_at');
   if(error)throw error;
   games=data||[];
-  loadWebGames().catch(()=>{});
+  loadWebGames().catch(()=>{});loadGiftBadge().catch(()=>{});
   const host=$('dashboardGames');host.innerHTML='';
   if(!games.length){host.innerHTML='<div class="muted">Zatím není založena žádná hra.</div>';return}
   games.forEach(g=>{
@@ -1858,11 +1937,15 @@ $('histBody').addEventListener('click',async ev=>{
 
 /* ===== Hry na webu ===== */
 const WEB_STATUS={hidden:'Skrytá – na webu není',coming_soon:'Připravujeme',listed:'Zveřejněná'};
-let webGames=[],webPublished=new Set(),webEditing=null;
+let webGames=[],webPublished=new Set(),webEditing=null,webGalleryArr=[];
+function renderWebGallery(){
+  const host=$('webGallery');host.innerHTML='';
+  webGalleryArr.forEach((u,i)=>{const d=document.createElement('div');d.className='g-item';d.innerHTML=`<img src="${esc(u)}" alt="Fotografie ${i+1}"><button type="button" title="Odebrat">×</button>`;d.querySelector('button').onclick=()=>{webGalleryArr.splice(i,1);renderWebGallery()};host.appendChild(d)});
+}
 async function loadWebGames(){
   const host=$('webGamesList');
   const [g,v]=await Promise.all([
-    supabase.from('games').select('id,name,slug,web_status,web_purchase,web_tagline,web_description,web_cover_url,web_sort,created_at').order('web_sort').order('created_at'),
+    supabase.from('games').select('id,name,slug,web_status,web_purchase,web_tagline,web_description,web_cover_url,web_details,web_gallery,web_sort,created_at').order('web_sort').order('created_at'),
     supabase.from('game_versions').select('game_id').eq('status','published')
   ]);
   if(g.error){host.innerHTML=`<div class="muted">Hry se nepodařilo načíst: ${esc(errText(g.error))}</div>`;return}
@@ -1902,7 +1985,7 @@ async function moveWebGame(i,delta){
 }
 function openWebGameDialog(gm){
   webEditing=gm;$('webGameTitle').textContent=gm.name;
-  $('webTagline').value=gm.web_tagline||'';$('webDescription').value=gm.web_description||'';$('webCoverUrl').value=gm.web_cover_url||'';
+  $('webTagline').value=gm.web_tagline||'';$('webDescription').value=gm.web_description||'';$('webDetails').value=gm.web_details||'';webGalleryArr=Array.isArray(gm.web_gallery)?[...gm.web_gallery]:[];renderWebGallery();$('webGalleryStatus').textContent='';$('webCoverUrl').value=gm.web_cover_url||'';
   $('webCoverStatus').textContent='';$('webGameMsg').textContent='';$('webCoverFile').value='';
   $('webCoverPreview').innerHTML=gm.web_cover_url?`<img src="${esc(gm.web_cover_url)}" alt="Náhled">`:'';
   $('webGameDialog').showModal();
@@ -1921,14 +2004,115 @@ $('webCoverUpload').onclick=async()=>{
   const {data}=supabase.storage.from('game-assets').getPublicUrl(path);
   $('webCoverUrl').value=data.publicUrl;$('webCoverPreview').innerHTML=`<img src="${esc(data.publicUrl)}" alt="Náhled">`;st.textContent='Nahráno. Potvrďte tlačítkem Uložit.';
 };
+$('webGalleryAdd').onclick=async()=>{
+  const f=$('webGalleryFile').files?.[0],st=$('webGalleryStatus');
+  if(!f){st.textContent='Vyberte obrázek.';return}
+  if(!f.type.startsWith('image/')){st.textContent='Soubor musí být obrázek.';return}
+  if(f.size>8*1024*1024){st.textContent='Obrázek je větší než 8 MB.';return}
+  if(webGalleryArr.length>=12){st.textContent='Galerie může mít nejvýše 12 fotografií.';return}
+  const safe=(f.name||'photo').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-80);
+  const path=`web/${webEditing.slug}/gallery/${crypto.randomUUID()}-${safe}`;
+  st.textContent='Nahrávám…';
+  const {error}=await supabase.storage.from('game-assets').upload(path,f,{upsert:false,contentType:f.type});
+  if(error){st.textContent='Nahrání selhalo: '+errText(error);return}
+  const {data}=supabase.storage.from('game-assets').getPublicUrl(path);
+  webGalleryArr.push(data.publicUrl);renderWebGallery();$('webGalleryFile').value='';st.textContent='Přidáno. Potvrďte tlačítkem Uložit.';
+};
 $('webGameSave').onclick=async()=>{
   if(!webEditing)return;
   $('webGameMsg').textContent='Ukládám…';
-  const patch={web_tagline:$('webTagline').value.trim()||null,web_description:$('webDescription').value.trim()||null,web_cover_url:$('webCoverUrl').value.trim()||null};
+  const patch={web_tagline:$('webTagline').value.trim()||null,web_description:$('webDescription').value.trim()||null,web_details:$('webDetails').value.trim()||null,web_gallery:webGalleryArr,web_cover_url:$('webCoverUrl').value.trim()||null};
   const {error}=await supabase.from('games').update(patch).eq('id',webEditing.id);
   if(error){$('webGameMsg').textContent='Uložení se nezdařilo: '+errText(error);return}
   Object.assign(webEditing,patch);$('webGameDialog').close();toast('Uloženo');renderWebGames();
 };
+
+
+/* ===== Recenze hráčů ===== */
+const stars2=n=>'<span class="stars-out">'+'★'.repeat(n)+'☆'.repeat(5-n)+'</span>';
+async function showReviews(){
+  hideAdminViews();$('reviewsView').classList.remove('hidden');
+  $('reviewsMsg').textContent='Načítám…';
+  const {data,error}=await supabase.rpc('admin_list_reviews');
+  if(error){$('reviewsMsg').textContent='Recenze se nepodařilo načíst: '+errText(error);return}
+  renderReviews(data||[]);
+}
+function renderReviews(rows){
+  const host=$('reviewsList');host.innerHTML='';
+  $('reviewsMsg').textContent=rows.length?`${rows.length} hodnocení`:'Zatím nikdo hru neohodnotil. Hodnocení se objeví po prvních dohraných hrách.';
+  rows.forEach(r=>{
+    const el=document.createElement('article');el.className='review-card';
+    const canPublish=r.consent&&String(r.comment||'').trim();
+    el.innerHTML=`<div class="review-head"><div>${stars2(r.rating)} <strong>${esc(r.game_name)}</strong>${r.is_test?'<span class="pill test">test</span>':''}<div class="muted" style="font-size:13px">${esc(fmtWhen(r.rated_at))}${r.email?' · '+esc(r.email):''}</div></div><div>${r.is_public?'<span class="pill ok">ZVEŘEJNĚNO NA WEBU</span>':(r.consent?'<span class="pill">souhlas udělen</span>':'<span class="pill bad">bez souhlasu se zveřejněním</span>')}</div></div>
+      ${r.comment?`<div class="review-comment">${esc(r.comment)}</div>`:'<div class="muted">Bez komentáře – do průměru se započítává jen hodnocení.</div>'}
+      <div class="rev-actions">${r.is_public?'<button type="button" class="secondary rev-hide">Skrýt z webu</button>':`<button type="button" class="rev-show" ${canPublish&&!r.is_test?'':'disabled'}>Zveřejnit na webu</button>`}${r.is_test?'<span class="muted" style="font-size:13px;align-self:center">Testovací hry se na webu nezobrazují.</span>':''}</div>`;
+    const hide=el.querySelector('.rev-hide'),show=el.querySelector('.rev-show');
+    const set=async v=>{const {error}=await supabase.rpc('admin_set_review_public',{p_session_id:r.session_id,p_public:v});if(error){alert('Změna se nezdařila: '+errText(error));return}toast(v?'Zveřejněno':'Skryto');await showReviews()};
+    if(hide)hide.onclick=()=>set(false);if(show)show.onclick=()=>set(true);
+    host.appendChild(el);
+  });
+}
+$('openReviewsBtn').onclick=()=>showReviews().catch(e=>alert(errText(e)));
+$('reviewsHomeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
+$('reviewsReloadBtn').onclick=()=>showReviews().catch(e=>alert(errText(e)));
+
+/* ===== Dárkové poukazy ===== */
+const GIFT_STATUS={new:'Nová',paid:'Zaplaceno',issued:'Vydáno',cancelled:'Zrušeno'};
+async function showGifts(){
+  hideAdminViews();$('giftsView').classList.remove('hidden');
+  $('giftsMsg').textContent='Načítám…';
+  const {data,error}=await supabase.from('gift_requests').select('id,created_at,buyer_name,buyer_email,recipient_name,message,status,license_id,issued_at,admin_note,games(name)').order('created_at',{ascending:false}).limit(300);
+  if(error){$('giftsMsg').textContent='Objednávky se nepodařilo načíst: '+errText(error);return}
+  renderGifts(data||[]);
+}
+function renderGifts(rows){
+  const host=$('giftsList');host.innerHTML='';
+  const open=rows.filter(r=>r.status==='new'||r.status==='paid').length;
+  $('giftsMsg').textContent=rows.length?`${rows.length} objednávek · k vyřízení: ${open}`:'Zatím nepřišla žádná objednávka poukazu.';
+  rows.forEach(r=>{
+    const el=document.createElement('article');el.className='gift-card';
+    const issued=r.status==='issued',cancelled=r.status==='cancelled';
+    el.innerHTML=`<div class="gift-head"><div><strong>${esc(r.games?.name||'Hra')}</strong> <span class="pill ${issued?'ok':cancelled?'bad':'test'}">${esc(GIFT_STATUS[r.status]||r.status)}</span><div class="muted" style="font-size:13px">${esc(fmtWhen(r.created_at))}</div></div></div>
+      <div><b>Kupuje:</b> ${esc(r.buyer_name)} · <a href="mailto:${esc(r.buyer_email)}">${esc(r.buyer_email)}</a></div>
+      ${r.recipient_name?`<div><b>Pro:</b> ${esc(r.recipient_name)}</div>`:''}
+      ${r.message?`<div class="review-comment">${esc(r.message)}</div>`:''}
+      <div class="gift-actions">
+        ${issued?'<button type="button" class="g-view">Zobrazit poukaz</button>':''}
+        ${!issued&&!cancelled&&r.status==='new'?'<button type="button" class="secondary g-paid">Označit jako zaplaceno</button>':''}
+        ${!issued&&!cancelled?'<button type="button" class="g-issue">Vydat poukaz</button><button type="button" class="danger g-cancel">Zrušit</button>':''}
+      </div>`;
+    const bind=(sel,fn)=>{const b=el.querySelector(sel);if(b)b.onclick=fn};
+    bind('.g-paid',async()=>{const {error}=await supabase.from('gift_requests').update({status:'paid'}).eq('id',r.id);if(error){alert(errText(error));return}toast('Označeno jako zaplacené');showGifts()});
+    bind('.g-cancel',async()=>{if(!confirm('Zrušit tuto objednávku poukazu?'))return;const {error}=await supabase.from('gift_requests').update({status:'cancelled'}).eq('id',r.id);if(error){alert(errText(error));return}showGifts()});
+    bind('.g-issue',async()=>{
+      if(!confirm(`Vydat poukaz na hru „${r.games?.name||''}“? Vznikne nový herní kód. Vydávejte až po přijetí platby.`))return;
+      const amountRaw=prompt('Zaplacená částka v Kč (nepovinné, jen pro evidenci):','');
+      const amount=amountRaw&&Number.isFinite(Number(amountRaw))&&Number(amountRaw)>0?Math.round(Number(amountRaw)):null;
+      const {data,error}=await supabase.rpc('admin_issue_gift_voucher',{p_request_id:r.id,p_amount:amount});
+      if(error){alert('Vydání se nezdařilo: '+errText(error));return}
+      toast('Poukaz vydán');openVoucher(r,data.code);showGifts();
+    });
+    bind('.g-view',async()=>{
+      const {data,error}=await supabase.from('licenses').select('code').eq('id',r.license_id).single();
+      if(error){alert(errText(error));return}openVoucher(r,data.code);
+    });
+    host.appendChild(el);
+  });
+}
+function openVoucher(r,code){
+  $('voucherCard').innerHTML=`<span class="v-stamp">DÁRKOVÝ POUKAZ</span><div class="v-brand">QUESTPLORE</div><h3>Dárkový poukaz</h3><div class="v-game">${esc(r.games?.name||'')}</div>${r.recipient_name?`<p class="v-to">Pro: <b>${esc(r.recipient_name)}</b></p>`:''}${r.message?`<p class="v-msg">„${esc(r.message)}“</p>`:''}<div>Váš herní kód</div><div class="v-code">${esc(code)}</div><p class="v-how">Kód zadejte na <b>hulinskylukas1-bot.github.io/Questplore</b> a vyrazte s týmem do města. Od: ${esc(r.buyer_name)}</p>`;
+  $('voucherDialog').dataset.code=code;$('voucherDialog').showModal();
+}
+$('voucherClose').onclick=()=>$('voucherDialog').close();
+$('voucherCopy').onclick=async()=>{const c=$('voucherDialog').dataset.code||'';try{await navigator.clipboard.writeText(c)}catch{}toast('Kód zkopírován')};
+$('voucherPrint').onclick=()=>{document.body.classList.add('print-voucher');window.print();setTimeout(()=>document.body.classList.remove('print-voucher'),500)};
+$('openGiftsBtn').onclick=()=>showGifts().catch(e=>alert(errText(e)));
+$('giftsHomeBtn').onclick=()=>showDashboard().catch(e=>alert(errText(e)));
+$('giftsReloadBtn').onclick=()=>showGifts().catch(e=>alert(errText(e)));
+async function loadGiftBadge(){
+  const {count}=await supabase.from('gift_requests').select('id',{count:'exact',head:true}).in('status',['new','paid']);
+  const b=$('giftNewBadge');if(count>0){b.textContent=`${count} k vyřízení`;b.classList.remove('hidden')}else b.classList.add('hidden');
+}
 
 const recoveryInUrl=location.hash.includes('type=recovery')||new URLSearchParams(location.search).get('type')==='recovery';
 const {data:{session}}=await supabase.auth.getSession();

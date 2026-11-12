@@ -174,8 +174,8 @@ function logAttempt(b,kind,detail={}){
    p_data:{kind,block_type:b.block_type,...detail}
  });
 }
-async function submitRating(rating,comment){
- const {error}=await rpc('submit_game_rating',{p_session_token:session.session_token,p_device_token:deviceToken,p_rating:rating,p_comment:comment||null});
+async function submitRating(rating,comment,consent){
+ const {error}=await rpc('submit_game_rating',{p_session_token:session.session_token,p_device_token:deviceToken,p_rating:rating,p_comment:comment||null,p_consent:!!consent});
  if(error)throw error;
 }
 async function uploadPhotoEvidence(file,b){

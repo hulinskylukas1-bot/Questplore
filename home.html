@@ -3,37 +3,40 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#0a0c0b">
+  <meta name="theme-color" content="#0a0908">
   <title>Questplore · Venkovní příběhové hry</title>
-  <meta name="description" content="Questplore jsou venkovní příběhové hry, ve kterých se město mění v herní plán. Stačí telefon, tým a chuť objevovat.">
+  <meta name="description" content="Questplore jsou venkovní příběhové hry, ve kterých se město mění v herní plán. Stačí telefon, tým a chuť odhalovat stopy.">
   <meta property="og:title" content="Questplore · Venkovní příběhové hry">
   <meta property="og:description" content="Město je plné příběhů. Stačí je odhalit.">
   <meta property="og:type" content="website">
   <link rel="icon" href="./nadvorni-start.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="home.css?v=4">
+  <link rel="stylesheet" href="home.css?v=9">
 </head>
 <body>
   <a class="skip" href="#hry">Přeskočit na hry</a>
 
   <header class="siteHeader" id="top">
-    <a class="brand" href="./home.html" aria-label="Questplore – úvod">QUESTPLORE</a>
+    <a class="brand" href="./home.html" aria-label="Questplore – úvod">QUEST<i>PLORE</i></a>
     <nav class="nav" aria-label="Hlavní navigace">
       <a href="#hry">Hry</a>
-      <a href="#jak-to-funguje">Jak to funguje</a>
+      <a href="#ukazka">Zkuste si</a>
+      <a href="#darek">Dárek</a>
       <a href="#otazky">Otázky</a>
       <a class="navCta" href="./">Mám kód</a>
     </nav>
   </header>
 
   <main>
-    <section class="hero">
+    <section class="hero" aria-labelledby="heroTitle">
       <div class="heroInner">
-        <p class="eyebrow">VENKOVNÍ PŘÍBĚHOVÉ HRY</p>
-        <h1>Město je plné příběhů.<br><span>Stačí je odhalit.</span></h1>
+        <span class="stamp" aria-hidden="true">Přísně tajné</span>
+        <p class="eyebrow">Spis č. 001 · Venkovní příběhové hry</p>
+        <h1 id="heroTitle">Město je plné příběhů.<br><span>Stačí je odhalit.</span></h1>
         <p class="heroLead">
           Vyrazte s týmem do ulic, hledejte skutečné stopy a nechte se vést příběhem,
           který se odehrává přímo kolem vás. Stačí telefon, nic se neinstaluje.
         </p>
+        <p class="heroNote">OBSAH SLOŽKY: <button class="redact" type="button" aria-label="Odhalit skrytý text">jedno velké spiknutí</button>, tým odvážlivců a váš telefon.</p>
         <div class="heroActions">
           <a class="btn primary" href="#hry">Vybrat hru</a>
           <form class="codeForm" action="./" method="get" aria-label="Zadat herní kód">
@@ -50,10 +53,10 @@
       </div>
     </section>
 
-    <section class="section" id="hry" aria-labelledby="hryTitle">
+    <section class="section" id="hry" data-trail aria-labelledby="hryTitle">
       <div class="sectionHead">
-        <p class="eyebrow">NAŠE HRY</p>
-        <h2 id="hryTitle">Vyberte si příběh.</h2>
+        <p class="eyebrow">Otevřené spisy</p>
+        <h2 id="hryTitle">Vyberte si případ.</h2>
       </div>
       <div id="games" class="games" aria-live="polite" aria-busy="true">
         <div class="skeleton"></div>
@@ -61,9 +64,46 @@
       <p id="testNote" class="testNote hidden">Nákup je zatím v testovacím režimu a neúčtuje skutečné peníze.</p>
     </section>
 
-    <section class="section alt" id="jak-to-funguje" aria-labelledby="howTitle">
+    <section class="section" id="ukazka" data-trail aria-labelledby="ukazkaTitle">
       <div class="sectionHead">
-        <p class="eyebrow">JAK TO FUNGUJE</p>
+        <p class="eyebrow">Cvičný úkol</p>
+        <h2 id="ukazkaTitle">Zkuste si první stopu.</h2>
+        <p class="lead">Takhle nějak vypadá úkol ve hře. Najdete klíč k dopisu bez adresáta?</p>
+      </div>
+      <div class="puzzle">
+        <div class="dossier puzzleNote paperText reveal" id="puzzleNote" data-tab="Dopis bez adresáta">
+          <span class="stamp" aria-hidden="true">Nalezeno</span>
+          <p class="hd">PŘEPSÁNO Z NALEZENÉHO LISTU</p>
+          <ul class="letter" aria-label="Text dopisu">
+            <li><span class="f">S</span>lyšel jsem, že se v noci něco mění.</li>
+            <li><span class="f">T</span>ichá ulice si pamatuje víc než lidé.</li>
+            <li><span class="f">O</span>patrně. Ne všichni, kdo se usmívají, jsou přátelé.</li>
+            <li><span class="f">P</span>očkejte na mě tam, kde svítí poslední lampa.</li>
+            <li><span class="f">A</span>ť vás nikdo nesleduje.</li>
+          </ul>
+        </div>
+        <div class="puzzleBox reveal">
+          <h3>Co dopis ukrývá?</h3>
+          <p>Nezáleží jen na tom, co řádky říkají. Jedno slovo se tu schovává tak, aby si ho všiml jen pozorný čtenář.</p>
+          <form class="puzzleForm" id="puzzleForm" autocomplete="off">
+            <label class="sr" for="puzzleAnswer">Vaše odpověď</label>
+            <input id="puzzleAnswer" placeholder="Skryté slovo" spellcheck="false" autocapitalize="characters">
+            <button class="btn primary" type="submit">Ověřit</button>
+          </form>
+          <div class="puzzleMsg" id="puzzleMsg" aria-live="polite"></div>
+          <div class="hintList" id="hintList"></div>
+          <button class="btn ghost" type="button" id="hintBtn">Potřebuji nápovědu</button>
+          <div class="puzzleWin" id="puzzleWin">
+            <span class="stamp">Odhaleno</span>
+            <a class="btn primary" href="#hry">Vybrat hru a pokračovat</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="jak-to-funguje" data-trail aria-labelledby="howTitle">
+      <div class="sectionHead">
+        <p class="eyebrow">Jak to funguje</p>
         <h2 id="howTitle">Telefon je průvodce.<br>Město je herní plán.</h2>
       </div>
       <ol class="steps">
@@ -91,21 +131,34 @@
       </ol>
     </section>
 
-    <section class="section" aria-labelledby="needTitle">
+    <section class="section hidden" id="recenze" data-trail aria-labelledby="revTitle">
       <div class="sectionHead">
-        <p class="eyebrow">CO BUDETE POTŘEBOVAT</p>
-        <h2 id="needTitle">Žádná příprava navíc.</h2>
+        <p class="eyebrow">Svědectví hráčů</p>
+        <h2 id="revTitle">Co říkají ti, kdo to zkusili.</h2>
       </div>
-      <ul class="needs">
-        <li class="reveal"><strong>Chytrý telefon</strong><span>S internetem a zapnutou polohou. Hra běží v prohlížeči, nic nestahujete.</span></li>
-        <li class="reveal"><strong>Malý tým</strong><span>Hraje se společně a postup se sdílí mezi zařízeními vašeho týmu.</span></li>
-        <li class="reveal"><strong>Čas a pohodlná obuv</strong><span>Hra vás vede venku. Délka je uvedená u každé hry.</span></li>
-      </ul>
+      <div id="ratingBig" class="ratingBig"></div>
+      <div id="notes" class="notes"></div>
     </section>
 
-    <section class="section alt" id="otazky" aria-labelledby="faqTitle">
+    <section class="section" id="darek" data-trail aria-labelledby="giftTitle">
+      <div class="gift">
+        <div class="sectionHead" style="margin-bottom:0">
+          <p class="eyebrow">Dárkový poukaz</p>
+          <h2 id="giftTitle">Darujte první stopu.</h2>
+          <p class="lead">Dárek, který se nehromadí na polici. Obdarovaný dostane herní kód a vzkaz od vás. Hru si zahraje s kým chce a kdy chce.</p>
+          <p style="margin-top:22px"><a class="btn primary" href="./voucher.html">Objednat dárkový poukaz</a></p>
+        </div>
+        <div class="ticket reveal" aria-hidden="true">
+          <div class="t1">QUESTPLORE</div>
+          <div class="t2">Dárkový poukaz</div>
+          <div class="t3">PRO TÝM ODVÁŽLIVCŮ</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="otazky" data-trail aria-labelledby="faqTitle">
       <div class="sectionHead">
-        <p class="eyebrow">ČASTÉ OTÁZKY</p>
+        <p class="eyebrow">Časté otázky</p>
         <h2 id="faqTitle">Než vyrazíte.</h2>
       </div>
       <div class="faq">
@@ -129,12 +182,16 @@
           <summary>Co když mi nefunguje poloha?</summary>
           <p>Zkuste to venku, mimo úzké uličky a pod otevřeným nebem. Zkontrolujte, že je v telefonu zapnutá poloha a prohlížeč má k ní přístup.</p>
         </details>
+        <details>
+          <summary>Dá se hra darovat?</summary>
+          <p>Ano. Objednejte dárkový poukaz, ozveme se vám s pokyny k platbě a po jejím přijetí vám pošleme poukaz s herním kódem a vaším vzkazem.</p>
+        </details>
       </div>
     </section>
 
-    <section class="finalCta">
+    <section class="finalCta" data-trail>
       <div>
-        <p class="eyebrow">JSTE PŘIPRAVENI?</p>
+        <p class="eyebrow">Jste připraveni?</p>
         <h2>První stopa čeká.</h2>
       </div>
       <a class="btn primary" href="#hry">Vybrat hru</a>
@@ -142,14 +199,16 @@
   </main>
 
   <footer class="footer">
-    <div class="brand">QUESTPLORE</div>
+    <div class="brand">QUEST<i>PLORE</i></div>
     <div class="footerText">Příběhy, které se odehrávají kolem vás.</div>
     <nav class="footerLinks" aria-label="Odkazy v patičce">
       <a href="./">Spustit hru s kódem</a>
+      <a href="./voucher.html">Dárkový poukaz</a>
       <a href="#top">Nahoru ↑</a>
     </nav>
   </footer>
 
-  <script src="home.js?v=3" defer></script>
+  <script src="site.js?v=5"></script>
+  <script src="home.js?v=5" defer></script>
 </body>
 </html>

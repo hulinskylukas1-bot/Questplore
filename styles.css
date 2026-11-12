@@ -113,3 +113,5 @@
 .star{font-size:30px;line-height:1;background:none;border:0;padding:2px 4px;color:#555b66;cursor:pointer}
 .star.on{color:#e8c77a}
 .ratingComment{width:100%;margin:6px 0 10px;background:#111419;color:inherit;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px;font:inherit}
+.ratingConsent{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.4;color:#aeb6b0;margin:2px 0 12px;cursor:pointer}
+.ratingConsent input{margin-top:3px;flex:none}
