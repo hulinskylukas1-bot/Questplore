@@ -30,7 +30,7 @@ async function rpc(name,params={}){
 }
 const root=document.getElementById('app');
 let data, stageIndex=0, cursor=0, visible=[], waiting=false, session=null, syncTimer=null, applyingRemote=false;
-const state={lastChoice:null,choices:{},solved:{},responses:{},quizAnswers:{},progressStep:0,seenBlockIds:[],visitedStageIds:[]};
+const state={lastChoice:null,choices:{},solved:{},responses:{},quizAnswers:{},progressStep:0,seenBlockIds:[],visitedStageIds:[],hintsUsed:{},startedAtMs:null,finishedSec:null};
 const DEVICE_KEY='ha_device_token', SESSION_KEY='ha_spiknuti_session';
 function uuid(){
  if(globalThis.crypto&&crypto.randomUUID)return crypto.randomUUID();
@@ -54,6 +54,52 @@ function requiredTermsMatch(terms,value){
    for(let i=0;i<words.length;i++)if(!used.has(i)&&(/^\d+$/.test(t)?words[i]===t:fuzzy(t,words[i]))){hit=i;break}
    if(hit<0)return false; used.add(hit); return true;
  });
+}
+
+/* ---------- Časovač hry ----------
+   Hra nepočítá s pauzami: čas běží od začátku hry do jejího dokončení bez ohledu na to,
+   zda je aplikace otevřená. */
+let timerHandle=null;
+function fmtTime(sec){
+ sec=Math.max(0,Math.floor(sec||0));
+ const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60,p=n=>String(n).padStart(2,'0');
+ return h>0?`${h}:${p(m)}:${p(s)}`:`${p(m)}:${p(s)}`;
+}
+function elapsedNow(){
+ if(state.finishedSec!=null)return state.finishedSec;
+ return state.startedAtMs?Math.max(0,(Date.now()-state.startedAtMs)/1000):0;
+}
+function paintTimer(){
+ const el=document.getElementById('gameTimer');
+ if(el)el.textContent='⏱ '+fmtTime(elapsedNow());
+}
+function startTimer(saved){
+ stopTimerTick();
+ saved=saved||{};
+ state.finishedSec=saved.finishedSec!=null?Number(saved.finishedSec):null;
+ if(Number(saved.startedAtMs)>0)state.startedAtMs=Number(saved.startedAtMs);
+ else if(Number(saved.elapsedSec)>0)state.startedAtMs=Date.now()-Number(saved.elapsedSec)*1000;
+ else state.startedAtMs=Date.now();
+ paintTimer();
+ timerHandle=setInterval(paintTimer,1000);
+}
+function stopTimerTick(){if(timerHandle){clearInterval(timerHandle);timerHandle=null}}
+function freezeTimer(){
+ const total=Math.round(elapsedNow());
+ state.finishedSec=total;paintTimer();
+ return total;
+}
+function adoptRemoteElapsed(rs){
+ if(!rs)return;
+ if(rs.finishedSec!=null){state.finishedSec=Number(rs.finishedSec);paintTimer();return}
+ const remote=Number(rs.startedAtMs)||0;
+ if(remote>0&&(!state.startedAtMs||remote<state.startedAtMs)){state.startedAtMs=remote;paintTimer()}
+}
+function mergeHintsUsed(remote){
+ if(!remote||typeof remote!=='object')return;
+ for(const [k,v] of Object.entries(remote)){
+   state.hintsUsed[k]=Math.max(Number(state.hintsUsed[k]||0),Number(v)||0);
+ }
 }
 function rememberResponse(b,eventType,eventData){
  if(!b)return;
@@ -84,7 +130,11 @@ async function persistProgress(
    choices:state.choices,
    solved:state.solved,
    responses:state.responses,
-   quizAnswers:state.quizAnswers
+   quizAnswers:state.quizAnswers,
+   hintsUsed:state.hintsUsed,
+   startedAtMs:state.startedAtMs,
+   elapsedSec:Math.round(elapsedNow()),
+   finishedSec:state.finishedSec
  };
  const {data:result,error}=await rpc('save_game_progress',{
    p_session_token:session.session_token,
@@ -106,10 +156,27 @@ async function persistProgress(
    state.progressStep=Number(result.state.progressStep??state.progressStep??0);
    state.seenBlockIds=result.state.seenBlockIds||state.seenBlockIds;
    state.visitedStageIds=result.state.visitedStageIds||state.visitedStageIds;
+   mergeHintsUsed(result.state.hintsUsed);
+   adoptRemoteElapsed(result.state);
  }
  localStorage.setItem(SESSION_KEY,JSON.stringify({token:session.session_token,code:session.code||''}));
  if(result?.accepted===false && forceRemoteOnReject)setTimeout(()=>applyRemoteProgress(true),0);
  return result||{accepted:true};
+}
+function logAttempt(b,kind,detail={}){
+ if(!session||!b)return;
+ rpc('log_game_event',{
+   p_session_token:session.session_token,
+   p_device_token:deviceToken,
+   p_stage_id:data.stages[stageIndex]?.id||null,
+   p_block_id:b.id,
+   p_event_type:'attempt_wrong',
+   p_data:{kind,block_type:b.block_type,...detail}
+ });
+}
+async function submitRating(rating,comment){
+ const {error}=await rpc('submit_game_rating',{p_session_token:session.session_token,p_device_token:deviceToken,p_rating:rating,p_comment:comment||null});
+ if(error)throw error;
 }
 async function uploadPhotoEvidence(file,b){
  const form=new FormData();

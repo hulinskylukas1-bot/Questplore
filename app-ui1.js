@@ -1,9 +1,10 @@
 function shell(){
  const stages=data.stages||[], st=stages[stageIndex], title=data.translation?.title||data.game?.name||'Spiknutí';
- root.innerHTML=`<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><div class="topActions"><div class="progress">${stageIndex+1} / ${stages.length}</div><button id="archiveBtn" class="archiveBtn" type="button">Archiv</button><button id="exitGame" class="exitGameBtn" type="button">Ukončit hru</button></div></div>
+ root.innerHTML=`<div class="shell"><div class="top"><div class="brand">QUESTPLORE</div><div class="topActions"><div id="gameTimer" class="gameTimer" aria-label="Čas hry">⏱ 00:00</div><div class="progress">${stageIndex+1} / ${stages.length}</div><button id="archiveBtn" class="archiveBtn" type="button">Archiv</button><button id="exitGame" class="exitGameBtn" type="button">Ukončit hru</button></div></div>
  <section class="case"><div class="casehead"><h1>${esc(title)}</h1></div>
  <div id="feed" class="feed chat"></div><div id="continueBar" class="continuebar hidden"><button id="continueBtn" class="btn">Pokračovat</button></div></section></div>`;
  document.getElementById('continueBtn').onclick=advance;
+ paintTimer();
  const archiveBtn=document.getElementById('archiveBtn');
  if(archiveBtn)archiveBtn.onclick=openArchive;
  const exitBtn=document.getElementById('exitGame');
@@ -61,6 +62,102 @@ function logicGridHTML(cfg){
  if(!rows.length||!cols.length)return '<div class="placeholder">Logická tabulka zatím není nastavená.</div>';
  return `<div class="logicGridWrap"><table class="logicGrid"><thead><tr><th></th>${cols.map(c=>`<th>${esc(c.label||c.key||'')}</th>`).join('')}</tr></thead><tbody>${rows.map((row,ri)=>`<tr data-row="${esc(row)}"><th>${esc(row)}</th>${cols.map((col,ci)=>`<td><select class="logicSelect" data-row="${esc(row)}" data-key="${esc(col.key||ci)}"><option value="">— vyberte —</option>${(col.options||[]).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
+
+/* ---------- Ukazatel vzdálenosti a směru k cíli ---------- */
+function gpsTarget(cfg){
+ const lat=cfg.latitude??cfg.lat,lng=cfg.longitude??cfg.lng;
+ if(lat==null||lng==null||lat===''||lng==='')return null;
+ const la=Number(lat),lo=Number(lng);
+ return Number.isFinite(la)&&Number.isFinite(lo)?{lat:la,lng:lo}:null;
+}
+function gpsGuideHTML(cfg){
+ if(cfg.show_guide===false||!gpsTarget(cfg))return '';
+ return `<div class="gpsGuide"><button type="button" class="btn secondary guideBtn">📍 Ukaž směr a vzdálenost</button><div class="guideBox hidden"><div class="guideArrow" aria-hidden="true"><span>➤</span></div><div class="guideInfo"><div class="guideDist">Zjišťuji polohu…</div><div class="guideDir muted"></div><div class="guideAcc muted"></div></div></div></div>`;
+}
+function geoDistanceBearing(lat1,lng1,lat2,lng2){
+ const R=6371000,rad=Math.PI/180,p1=lat1*rad,p2=lat2*rad,dp=(lat2-lat1)*rad,dl=(lng2-lng1)*rad;
+ const a=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+ const d=2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+ const y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
+ return {d,bearing:(Math.atan2(y,x)/rad+360)%360};
+}
+function compassWord(b){return ['sever','severovýchod','východ','jihovýchod','jih','jihozápad','západ','severozápad'][Math.round(b/45)%8]}
+function fmtDistance(d){return d>=1000?`${(d/1000).toFixed(1).replace('.',',')} km`:`${Math.round(d)} m`}
+function startGpsGuide(w,cfg){
+ const target=gpsTarget(cfg);if(!target)return;
+ const box=w.querySelector('.guideBox'),btn=w.querySelector('.guideBtn');
+ const arrow=w.querySelector('.guideArrow'),distEl=w.querySelector('.guideDist'),dirEl=w.querySelector('.guideDir'),accEl=w.querySelector('.guideAcc');
+ const rad=Number(cfg.radius_m??cfg.radius??50);
+ let watchId=null,heading=null,lastPos=null,orientationOn=false;
+ const render=()=>{
+   if(!w.isConnected){stop();return}
+   if(!lastPos)return;
+   const {d,bearing}=geoDistanceBearing(lastPos.latitude,lastPos.longitude,target.lat,target.lng);
+   const inside=d<=rad;
+   distEl.textContent=inside?`Jste v cíli (asi ${Math.round(d)} m). Stiskněte JSME TU.`:`Cíl je asi ${fmtDistance(d)} daleko`;
+   if(heading!=null&&!inside){
+     arrow.classList.remove('hidden');
+     arrow.style.transform=`rotate(${Math.round(bearing-heading)}deg)`;
+     dirEl.textContent=`Směr: ${compassWord(bearing)}`;
+   }else{
+     arrow.classList.add('hidden');
+     dirEl.textContent=inside?'':`Směr: ${compassWord(bearing)}${orientationOn?'':' (kompas telefonu není dostupný)'}`;
+   }
+   const acc=Math.round(lastPos.accuracy||0);
+   accEl.textContent=acc?`Přesnost polohy ±${acc} m${acc>40?' – počkejte, až se zpřesní':''}`:'';
+ };
+ const onOrientation=e=>{
+   let h=null;
+   if(typeof e.webkitCompassHeading==='number')h=e.webkitCompassHeading;
+   else if(e.absolute===true&&typeof e.alpha==='number')h=(360-e.alpha)%360;
+   if(h!=null){heading=h;orientationOn=true;render()}
+ };
+ const stop=()=>{
+   if(watchId!=null){navigator.geolocation.clearWatch(watchId);watchId=null}
+   window.removeEventListener('deviceorientation',onOrientation,true);
+   window.removeEventListener('deviceorientationabsolute',onOrientation,true);
+   document.removeEventListener('visibilitychange',onVisibility);
+   w._stopGuide=null;
+   if(btn){btn.disabled=false;btn.textContent='📍 Ukaž směr a vzdálenost'}
+   box.classList.add('hidden');
+ };
+ const watch=()=>{
+   watchId=navigator.geolocation.watchPosition(pos=>{lastPos=pos.coords;render()},err=>{distEl.textContent=gpsErrorMessage(err)},{enableHighAccuracy:true,maximumAge:2000,timeout:20000});
+ };
+ const onVisibility=()=>{
+   if(document.hidden){if(watchId!=null){navigator.geolocation.clearWatch(watchId);watchId=null}}
+   else if(watchId==null&&w._stopGuide)watch();
+ };
+ w._stopGuide=stop;
+ box.classList.remove('hidden');arrow.classList.add('hidden');
+ btn.textContent='Skrýt ukazatel';
+ watch();
+ document.addEventListener('visibilitychange',onVisibility);
+ const wantCompass=async()=>{
+   try{
+     if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+       const res=await DeviceOrientationEvent.requestPermission();
+       if(res!=='granted')return;
+       window.addEventListener('deviceorientation',onOrientation,true);
+     }else{
+       window.addEventListener('deviceorientationabsolute',onOrientation,true);
+       window.addEventListener('deviceorientation',onOrientation,true);
+     }
+   }catch{}
+ };
+ wantCompass();
+}
+function bindGpsGuide(w,cfg){
+ const btn=w.querySelector('.guideBtn');
+ if(!btn)return;
+ btn.onclick=()=>{
+   if(w._stopGuide){w._stopGuide();return}
+   if(!window.isSecureContext||!navigator.geolocation){
+     const r=w.querySelector('.result');if(r)r.textContent=gpsErrorMessage();return;
+   }
+   startGpsGuide(w,cfg);
+ };
+}
 function blockHTML(b){
  const c=b.content||{},cfg=b.config||{},t=b.block_type,txt=main(c);
  if(t==='conditional_message'||t==='narrator_message') return `<div class="bubble narrator"><div class="text">${esc(txt)}</div></div>`;
@@ -82,7 +179,7 @@ function blockHTML(b){
    const opts=Array.isArray(cfg.options)?cfg.options:[];
    return `<div class="bubble task" data-id="${b.id}"><div class="text">${esc(txt)}</div><div class="choices">${opts.map((o,i)=>`<button class="btn secondary choice" data-value="${i}">${esc(typeof o==='string'?o:(o.label??o.text??i))}</button>`).join('')}</div><div class="result muted"></div>${hintHTML(b)}</div>`;
  }
- if(t==='gps'||t==='gps_confirmation') return `<div class="bubble gps" data-id="${b.id}"><div class="text">${esc(txt)}</div><button class="btn gpsbtn">JSME TU</button><div class="result muted"></div>${hintHTML(b)}</div>`;
+ if(t==='gps'||t==='gps_confirmation') return `<div class="bubble gps" data-id="${b.id}"><div class="text">${esc(txt)}</div>${gpsGuideHTML(cfg)}<button class="btn gpsbtn">JSME TU</button><div class="result muted"></div>${hintHTML(b)}</div>`;
  if(t==='photo') return `<div class="bubble photo" data-id="${b.id}"><div class="text">${esc(txt)}</div><label class="btn secondary photoPick">Vyfotit / vybrat fotografii<input class="photoInput" type="file" accept="image/*,.heic,.heif" capture="environment" hidden></label><div class="photoPreview"></div><div class="result muted"></div>${hintHTML(b)}</div>`;
  if(t==='sorting'){
    const items=Array.isArray(cfg.items)?cfg.items:[];
@@ -114,9 +211,29 @@ function appendBlock(b){
 function unlock(){
  waiting=false; cursor++; setTimeout(revealUntilStop,300);
 }
+function renderUsedHints(w,b,hints){
+ const box=w.querySelector('.hintbox'),list=w.querySelector('.hintList'),btn=w.querySelector('.hintBtn');
+ if(!box||!list||!btn)return;
+ const used=Math.min(Number(state.hintsUsed?.[b.id]||0),hints.length);
+ if(used<=Number(box.dataset.count||0))return;
+ list.innerHTML='';
+ for(let i=0;i<used;i++){
+   const h=hints[i],txt=typeof h==='string'?h:(h.text||h.content||'');
+   const el=document.createElement('div');el.className='hintItem';
+   el.innerHTML=`<strong>Nápověda ${i+1}</strong><div>${esc(txt)}</div>`;
+   list.appendChild(el);
+ }
+ box.dataset.count=String(used);
+ btn.textContent=used<hints.length?`Další nápověda (${used}/${hints.length})`:'Nápovědy vyčerpány';
+ if(used>=hints.length)btn.disabled=true;
+}
 function bindBlock(w,b){
  const cfg=b.config||{};
  const hintBtn=w.querySelector('.hintBtn');
+ if(hintBtn){
+   const allHints=Array.isArray(cfg.hints)?cfg.hints:(Array.isArray(b.content?.hints)?b.content.hints:[]);
+   renderUsedHints(w,b,allHints);
+ }
  if(hintBtn) hintBtn.onclick=async()=>{
    const hints=Array.isArray(cfg.hints)?cfg.hints:(Array.isArray(b.content?.hints)?b.content.hints:[]);
    const box=w.querySelector('.hintbox'),list=w.querySelector('.hintList');
@@ -130,7 +247,8 @@ function bindBlock(w,b){
    count++;box.dataset.count=String(count);
    hintBtn.textContent=count<hints.length?`Další nápověda (${count}/${hints.length})`:'Nápovědy vyčerpány';
    if(count>=hints.length)hintBtn.disabled=true;
-   try{await persistProgress(b,'hint_used',{hint_index:count-1},stageIndex,cursor,false,false)}catch{}
+   state.hintsUsed[b.id]=count;
+   try{await persistProgress(b,'hint_used',{hint_index:count-1,hint_number:count,hints_total:hints.length,block_type:b.block_type,stage_name:data.stages[stageIndex]?.internal_name||null,elapsed_sec:Math.round(elapsedNow())},stageIndex,cursor,false,false)}catch{}
  };
  const check=w.querySelector('.check');
  if(check) check.onclick=()=>{
@@ -141,7 +259,7 @@ function bindBlock(w,b){
    const ok=termsOk || !answers.length || answers.some(a=>phraseMatch(a,val));
    const r=w.querySelector('.result'); r.textContent=ok?'Správně.':'To není ono. Hledejte dál.';
    if(ok){w.classList.add('solved');w.querySelector('input').disabled=true;check.disabled=true;persistProgress(b,'answer_correct',{answer:val}).then(r=>{if(r.accepted!==false)unlock()}).catch(()=>{r.textContent='Nepodařilo se uložit postup. Zkuste to znovu.';check.disabled=false;w.querySelector('input').disabled=false;});}
-   else {w.classList.add('bad');setTimeout(()=>w.classList.remove('bad'),250)}
+   else {w.classList.add('bad');setTimeout(()=>w.classList.remove('bad'),250);logAttempt(b,'text',{value:String(val).slice(0,200)})}
  };
  w.querySelectorAll('.choice').forEach(btn=>btn.onclick=()=>{
    w.querySelectorAll('.choice').forEach(x=>x.disabled=true);
@@ -210,10 +328,12 @@ function bindBlock(w,b){
        }
      }else{
        r.textContent='To není správně. Zkuste to znovu.';
+       logAttempt(b,'quiz',{question_index:qi,answer_index:oi});
        btn.classList.add('quiz-wrong');btn.disabled=true;
      }
    });
  }
+ bindGpsGuide(w,cfg);
  const gps=w.querySelector('.gpsbtn');
  if(gps) gps.onclick=()=>{
    const r=w.querySelector('.result');
@@ -238,15 +358,17 @@ function bindBlock(w,b){
          d=2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
        if(d<=rad){
          const ev={...base,validated:true,distance_m:Math.round(d),target_latitude:Number(lat),target_longitude:Number(lng),radius_m:rad};
+         w._stopGuide?.();w.querySelector('.guideBtn')?.setAttribute('disabled','');
          r.textContent=`Jsme na místě. Vzdálenost přibližně ${Math.round(d)} m.`;
          const result=await persistProgress(b,'gps_confirmed',ev);
          if(result.accepted!==false)unlock();
        }else{
          r.textContent=`To není ono. Hledejte dál. Jste přibližně ${Math.round(d)} m od cíle.`;
+         logAttempt(b,'gps',{distance_m:Math.round(d),accuracy_m:accuracy});
          gps.disabled=false;
        }
      }catch(e){r.textContent='Poloha byla zjištěna, ale nepodařilo se uložit důkaz. Zkuste to znovu.';gps.disabled=false}
-   },err=>{r.textContent=gpsErrorMessage(err);gps.disabled=false},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+   },err=>{r.textContent=gpsErrorMessage(err);logAttempt(b,'gps_error',{code:err?.code??null});gps.disabled=false},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
  };
  const photo=w.querySelector('.photoInput');
  if(photo) photo.onchange=async()=>{
@@ -314,7 +436,7 @@ function bindBlock(w,b){
      const resultBox=w.querySelector('.result');
      if(correct&&correct.length){
        const labelById=new Map((cfg.items||[]).map((item,i)=>{const part=sortItemParts(item,i);return [String(part.id),String(part.label)]}));const ok=order.length===correct.length&&order.every((x,i)=>norm(labelById.get(String(x))??x)===norm(labelById.get(String(correct[i]))??correct[i]));
-       if(!ok){resultBox.textContent='Pořadí zatím není správně. Zkuste to znovu.';w.classList.add('bad');setTimeout(()=>w.classList.remove('bad'),250);return}
+       if(!ok){resultBox.textContent='Pořadí zatím není správně. Zkuste to znovu.';logAttempt(b,'sorting',{order});w.classList.add('bad');setTimeout(()=>w.classList.remove('bad'),250);return}
        resultBox.textContent=cfg.success_text||'Správně.';
        sortCheck.disabled=true;w.classList.add('solved');
        const saved=await persistProgress(b,'sorting_complete',{order});
@@ -344,7 +466,7 @@ function bindBlock(w,b){
      const resultBox=w.querySelector('.result');
      if(!ok){
        resultBox.textContent=complete?'Tabulka zatím není správně. Zkuste to znovu.':'Doplňte celou tabulku.';
-       if(complete){w.classList.add('bad');setTimeout(()=>w.classList.remove('bad'),250)}
+       if(complete){logAttempt(b,'logic_grid',{});w.classList.add('bad');setTimeout(()=>w.classList.remove('bad'),250)}
        return;
      }
      resultBox.textContent=cfg.success_text||'Správně.';

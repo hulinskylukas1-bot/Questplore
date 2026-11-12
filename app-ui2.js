@@ -167,10 +167,62 @@ async function advance(){
      revealUntilStop();
    }catch(e){showSyncNotice('Nepodařilo se uložit přesun. Zkuste znovu.')}
  } else {
-   alert('Konec hry.');
+   finishGame();
  }
 }
 
+
+function ratedKey(){return session?`ha_rated_${session.session_token}`:null}
+function renderRatingBox(){
+ const feed=document.getElementById('feed');
+ if(!feed||document.getElementById('ratingBox')||!session)return;
+ let done=false;try{done=!!localStorage.getItem(ratedKey())}catch{}
+ const el=document.createElement('div');el.className='reveal shown';el.id='ratingBox';
+ if(done){
+   el.innerHTML='<div class="bubble"><div class="text">Děkujeme za vaše hodnocení.</div></div>';
+   feed.appendChild(el);return;
+ }
+ el.innerHTML=`<div class="bubble task ratingBubble"><div class="text">Jak se vám hra líbila?</div>
+   <div class="stars" role="radiogroup" aria-label="Hodnocení hry">${[1,2,3,4,5].map(n=>`<button type="button" class="star" data-n="${n}" role="radio" aria-checked="false" aria-label="${n} z 5">★</button>`).join('')}</div>
+   <textarea class="ratingComment" rows="3" maxlength="1000" placeholder="Chcete nám něco vzkázat? (nepovinné)"></textarea>
+   <button type="button" class="btn ratingSend" disabled>Odeslat hodnocení</button>
+   <div class="result muted"></div></div>`;
+ feed.appendChild(el);
+ let rating=0;
+ const stars=[...el.querySelectorAll('.star')],send=el.querySelector('.ratingSend'),res=el.querySelector('.result');
+ stars.forEach(st=>st.onclick=()=>{
+   rating=Number(st.dataset.n);
+   stars.forEach(x=>{const on=Number(x.dataset.n)<=rating;x.classList.toggle('on',on);x.setAttribute('aria-checked',String(Number(x.dataset.n)===rating))});
+   send.disabled=false;
+ });
+ send.onclick=async()=>{
+   if(!rating)return;
+   send.disabled=true;res.textContent='Odesílám…';
+   try{
+     await submitRating(rating,el.querySelector('.ratingComment').value);
+     try{localStorage.setItem(ratedKey(),'1')}catch{}
+     el.innerHTML='<div class="bubble"><div class="text">Děkujeme za vaše hodnocení.</div></div>';
+   }catch(e){res.textContent='Hodnocení se nepodařilo odeslat. Zkuste to znovu.';send.disabled=false}
+ };
+ setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'end'}),120);
+}
+async function finishGame(){
+ const bar=document.getElementById('continueBar');
+ const alreadyDone=state.finishedSec!=null;
+ const total=alreadyDone?state.finishedSec:freezeTimer();
+ if(bar)bar.classList.add('hidden');
+ const feed=document.getElementById('feed');
+ if(feed&&!document.getElementById('finishNote')){
+   const el=document.createElement('div');el.className='reveal shown';el.id='finishNote';
+   el.innerHTML=`<div class="bubble narrator finishBubble"><div class="text">Konec hry.\nVáš čas: ${fmtTime(total)}</div></div>`;
+   feed.appendChild(el);
+   setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'end'}),80);
+ }
+ renderRatingBox();
+ if(!alreadyDone){
+   try{await persistProgress(null,'game_finished',{elapsed_sec:total,hints_used:Object.values(state.hintsUsed||{}).reduce((a,n)=>a+Number(n||0),0)},stageIndex,cursor)}catch(e){showSyncNotice('Čas hry se nepodařilo uložit.')}
+ }
+}
 
 function discoveredDocuments(){
  const seen=new Set(state.seenBlockIds||[]);
@@ -267,6 +319,8 @@ async function applyRemoteProgress(force=false){
    state.progressStep=Number(rs.progressStep??state.progressStep??0);
    state.seenBlockIds=rs.seenBlockIds||state.seenBlockIds;
    state.visitedStageIds=rs.visitedStageIds||state.visitedStageIds;
+   mergeHintsUsed(rs.hintsUsed);
+   adoptRemoteElapsed(rs);
 
    stageIndex=Math.max(0,Math.min(remoteStage,data.stages.length-1));
    cursor=Math.max(0,remoteCursor);
@@ -309,7 +363,8 @@ function clearLocalSession(){
  if(syncTimer){clearInterval(syncTimer);syncTimer=null}
  localStorage.removeItem(SESSION_KEY);
  session=null; data=null; stageIndex=0; cursor=0; visible=[]; waiting=false;
- state.lastChoice=null; state.choices={}; state.solved={}; state.responses={}; state.quizAnswers={}; state.progressStep=0; state.seenBlockIds=[]; state.visitedStageIds=[];
+ state.lastChoice=null; state.choices={}; state.solved={}; state.responses={}; state.quizAnswers={}; state.progressStep=0; state.seenBlockIds=[]; state.visitedStageIds=[]; state.hintsUsed={}; state.finishedSec=null; state.startedAtMs=null;
+ stopTimerTick();
  entry();
 }
 function closeExitMenu(){
@@ -322,7 +377,7 @@ function exitGame(){
  overlay.innerHTML=`
    <div class="exitPanel" role="dialog" aria-modal="true" aria-label="Ukončit hru">
      <h2>Ukončit hru</h2>
-     <p>Vyberte, co se má stát s rozehraným postupem.</p>
+     <p>Vyberte, co se má stát s rozehraným postupem. Čas hry se nezastavuje – běží od začátku hry do jejího dokončení.</p>
      <div class="exitChoices">
        <button id="saveAndLeave" class="btn secondary" type="button">Uložit hru pro možnost návratu</button>
        <button id="discardAndLeave" class="btn danger" type="button">Neukládat hru</button>
@@ -374,8 +429,10 @@ async function boot(code){
  const saved=ss.state||{}; if(Number.isInteger(saved.stageIndex))stageIndex=Math.max(0,Math.min(saved.stageIndex,data.stages.length-1)); if(Number.isInteger(saved.cursor))cursor=Math.max(0,saved.cursor);
  state.lastChoice=saved.lastChoice??null; state.choices=saved.choices||{}; state.solved=saved.solved||{}; state.responses=saved.responses||{}; state.quizAnswers=saved.quizAnswers||{};
  state.progressStep=Number(saved.progressStep||0); state.seenBlockIds=saved.seenBlockIds||[]; state.visitedStageIds=saved.visitedStageIds||[];
+ state.hintsUsed=saved.hintsUsed||{};
  const bootStageId=data.stages[stageIndex]?.id; if(bootStageId&&!state.visitedStageIds.includes(bootStageId))state.visitedStageIds.push(bootStageId);
- waiting=false; visible=[]; shell(); const target=cursor; renderFullHistory(target); revealUntilStop(); setupSync();
+ waiting=false; visible=[]; startTimer(saved); shell(); const target=cursor; renderFullHistory(target); revealUntilStop(); setupSync();
+ if(state.finishedSec!=null&&!(data.stages[stageIndex]&&resolveNextStageIndex()>=0)&&cursor>=(data.stages[stageIndex].blocks||[]).length)finishGame();
 }
 function entry(){
  root.innerHTML=`<div class="shell"><section class="case"><div class="casehead"><h1>Questplore</h1></div><div class="bubble task"><div class="text">Zadejte kód hry</div><div class="answer"><input id="gameCode" value="" placeholder="Kód hry" autocomplete="off" autocapitalize="characters"><button id="startGame" class="btn">Vstoupit do hry</button></div><div id="entryError" class="result muted"></div></div></section></div>`;
