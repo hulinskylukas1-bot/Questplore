@@ -100,7 +100,8 @@ function initTrail() {
   const mainTop = main.getBoundingClientRect().top + window.scrollY;
   const anchors = [...main.querySelectorAll('[data-trail]')];
   if (anchors.length < 2) return;
-  const left = W * 0.035, right = W * 0.965;
+  const narrow = W < 720;
+  const left = narrow ? W * 0.025 : W * 0.035, right = narrow ? W * 0.05 : W * 0.965;
   const pts = [];
   const first = anchors[0].getBoundingClientRect().top + window.scrollY - mainTop;
   pts.push({ x: right, y: Math.max(40, first - 40), node: false });
