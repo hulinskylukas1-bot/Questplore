@@ -19,6 +19,7 @@ Snímek schématu je **referenční export**, ne nástroj pro automatické nasaz
 - Hráči nemají účet. Chodí přes funkce s tajným tokenem relace (anonymní volání je povolené jen u těchto funkcí):
   `start_or_resume_game`, `get_session_game_content`, `get_session_progress`, `save_game_progress`,
   `reset_game_progress`, `log_game_event`, `submit_game_rating`.
+- Veřejný web volá anonymně: `get_public_games`, `get_public_game`, `get_public_reviews` (jen čtení schválených dat) a `submit_gift_request` (objednávka dárkového poukazu s ochranou proti spamu).
 - Funkce `admin_*`, `is_admin` a správa pozvánek smějí volat jen přihlášení uživatelé a každá navíc ověřuje `is_admin()`.
 
 ## Edge Functions

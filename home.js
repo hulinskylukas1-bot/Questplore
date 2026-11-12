@@ -1,83 +1,59 @@
-// Questplore – úvodní stránka. Seznam her se načítá z databáze, takže ho řídí administrace (Hry na webu).
-const SUPABASE_URL = 'https://hnhyscllpnyzbxhrffph.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_w0N986iN3rTUBQjDLogNhQ_BXcmNRWH';
-
+// Questplore – úvodní stránka. Seznam her a recenze se načítají z databáze (řídí je administrace).
 const gamesEl = document.getElementById('games');
 const testNote = document.getElementById('testNote');
 
-function el(tag, cls, text) {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text != null) e.textContent = text;
-  return e;
-}
+function gameUrl(slug) { return './game.html?game=' + encodeURIComponent(slug); }
 
-function monogram(name) {
-  const words = String(name || '').split(/\s+/).filter(Boolean);
-  const letters = words.length > 1 ? words[0][0] + words[1][0] : (words[0] || '?').slice(0, 2);
-  return letters.toUpperCase();
-}
-
-function hue(name) {
-  let h = 0;
-  for (const ch of String(name || '')) h = (h * 31 + ch.charCodeAt(0)) % 360;
-  return 120 + (h % 60); // zelenkavé až olivové odstíny
-}
-
-function range(min, max, unit) {
-  if (min && max) return min === max ? `${min} ${unit}` : `${min}–${max} ${unit}`;
-  if (max) return `do ${max} ${unit}`;
-  if (min) return `od ${min} ${unit}`;
-  return null;
-}
-
-function playersText(min, max) {
-  if (min && max) return `${min}–${max} hráčů`;
-  if (max) return `až ${max} hráčů`;
-  if (min) return `od ${min} hráčů`;
-  return null;
-}
-
-function renderGame(g) {
-  const card = el('article', 'card reveal');
+function renderGame(g, index, single) {
   const soon = g.status === 'coming_soon';
+  const card = el('article', 'dossier card reveal');
+  card.dataset.tab = 'Spis · ' + (g.city || 'Případ');
+  if (!single) card.style.setProperty('--tilt', ([-0.7, 0.5, -0.3][index % 3]) + 'deg');
+  card.appendChild(el('span', 'stamp', soon ? 'Připravujeme' : 'Otevřeno'));
 
   const visual = el('div', 'visual' + (g.cover_url ? '' : ' noimg'));
   if (g.cover_url) visual.style.backgroundImage = `url("${String(g.cover_url).replace(/"/g, '%22')}")`;
   else visual.style.setProperty('--h', hue(g.name));
-  const chip = el('span', 'chip' + (soon ? ' soon' : ''), soon ? 'Připravujeme' : 'Hra');
-  visual.appendChild(chip);
   visual.appendChild(el('div', 'monogram', monogram(g.name)));
   card.appendChild(visual);
 
-  const body = el('div', 'body');
+  const body = el('div', 'body paperText');
   if (g.city) body.appendChild(el('div', 'place', g.city));
-  body.appendChild(el('h3', null, g.name));
+  const h3 = el('h3');
+  const link = el('a', null, g.name);
+  link.href = gameUrl(g.slug);
+  link.style.textDecoration = 'none';
+  h3.appendChild(link);
+  body.appendChild(h3);
   if (g.tagline) body.appendChild(el('p', 'tagline', g.tagline));
   if (g.description) body.appendChild(el('p', 'desc', g.description));
 
   const facts = el('ul', 'facts');
-  const dur = range(g.duration_min, g.duration_max, 'min');
+  const dur = rangeText(g.duration_min, g.duration_max, 'min');
   const pl = playersText(g.min_players, g.max_players);
   if (dur) facts.appendChild(el('li', null, '⏱ ' + dur));
   if (pl) facts.appendChild(el('li', null, '👥 ' + pl));
-  if (g.max_devices) facts.appendChild(el('li', null, '📱 až ' + g.max_devices + ' zařízení'));
+  if (g.max_devices) facts.appendChild(el('li', null, '📱 až ' + g.max_devices + ' zař.'));
   if (facts.children.length) body.appendChild(facts);
 
+  if (g.rating_count > 0 && g.rating_avg != null) {
+    const r = el('div', 'rate');
+    r.innerHTML = '';
+    const b = el('b', null, starsText(g.rating_avg));
+    r.appendChild(b);
+    r.appendChild(document.createTextNode(` ${czNumber(g.rating_avg)} · ${g.rating_count} ${g.rating_count === 1 ? 'hodnocení' : g.rating_count < 5 ? 'hodnocení' : 'hodnocení'}`));
+    body.appendChild(r);
+  }
+
   const actions = el('div', 'actions');
-  if (soon) {
-    const b = el('span', 'btn secondary', 'Brzy k dispozici');
-    b.setAttribute('aria-disabled', 'true');
-    actions.appendChild(b);
-  } else {
-    if (g.purchase) {
-      const buy = el('a', 'btn primary', 'Koupit hru');
-      buy.href = './purchase.html?game=' + encodeURIComponent(g.slug);
-      actions.appendChild(buy);
-    }
-    const play = el('a', 'btn ' + (g.purchase ? 'secondary' : 'primary'), 'Mám herní kód');
-    play.href = './';
-    actions.appendChild(play);
+  const open = el('a', 'btn ink', soon ? 'Nahlédnout do spisu' : 'Otevřít spis');
+  open.href = gameUrl(g.slug);
+  actions.appendChild(open);
+  if (!soon && g.purchase) {
+    const buy = el('a', 'btn secondary', 'Koupit');
+    buy.style.color = '#1c1710'; buy.style.borderColor = '#8d825f'; buy.style.background = 'transparent';
+    buy.href = './purchase.html?game=' + encodeURIComponent(g.slug);
+    actions.appendChild(buy);
   }
   body.appendChild(actions);
   card.appendChild(body);
@@ -101,46 +77,108 @@ async function loadGames() {
   gamesEl.setAttribute('aria-busy', 'true');
   gamesEl.className = 'games';
   gamesEl.replaceChildren(el('div', 'skeleton'));
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 12000);
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_public_games`, {
-      method: 'POST',
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-      body: '{}',
-      signal: controller.signal
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const games = await res.json();
+    const games = await rpc('get_public_games', {});
     if (!Array.isArray(games)) throw new Error('Bad response');
     gamesEl.replaceChildren();
     if (!games.length) {
-      gamesEl.appendChild(el('div', 'empty', 'Nové příběhy právě připravujeme. Brzy se tu objeví první hry.'));
+      gamesEl.appendChild(el('div', 'empty', 'Nové příběhy právě připravujeme. Brzy se tu objeví první spisy.'));
     } else {
-      gamesEl.className = 'games' + (games.length === 1 ? ' single' : '');
-      games.forEach(g => gamesEl.appendChild(renderGame(g)));
+      const single = games.length === 1;
+      gamesEl.className = 'games' + (single ? ' single' : '');
+      games.forEach((g, i) => gamesEl.appendChild(renderGame(g, i, single)));
       observeReveal();
     }
     testNote.classList.toggle('hidden', !games.some(g => g.purchase));
     gamesEl.setAttribute('aria-busy', 'false');
   } catch (e) {
     showError();
-  } finally {
-    clearTimeout(timer);
   }
+  scheduleTrail();
 }
 
-let io = null;
-function observeReveal() {
-  const items = document.querySelectorAll('.reveal:not(.in)');
-  if (!('IntersectionObserver' in window)) { items.forEach(i => i.classList.add('in')); return; }
-  if (!io) {
-    io = new IntersectionObserver(entries => {
-      entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
-    }, { threshold: 0.12 });
-  }
-  items.forEach(i => io.observe(i));
+/* Recenze: sekce se zobrazí, jen když existuje alespoň jedno skutečné hodnocení. */
+async function loadReviews() {
+  try {
+    const data = await rpc('get_public_reviews', { p_limit: 6 });
+    if (!data || !data.count) return;
+    const sec = document.getElementById('recenze');
+    const big = document.getElementById('ratingBig');
+    big.replaceChildren(
+      el('span', 'n', czNumber(data.avg)),
+      el('span', 'st', starsText(data.avg)),
+      el('span', 'c', `z ${data.count} ${data.count === 1 ? 'hodnocení' : 'hodnocení'} hráčů`)
+    );
+    const notes = document.getElementById('notes');
+    notes.replaceChildren();
+    (data.reviews || []).forEach((r, i) => {
+      const n = el('figure', 'note reveal');
+      n.style.margin = '0';
+      n.style.setProperty('--tilt', ([-1.2, 0.8, -0.5, 1][i % 4]) + 'deg');
+      n.appendChild(el('div', 'st', starsText(r.rating)));
+      n.appendChild(el('blockquote', null, '„' + r.comment + '“'));
+      const when = r.date ? new Date(r.date).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) : '';
+      n.appendChild(el('footer', null, `Hráč hry ${r.game_name}${when ? ' · ' + when : ''}`));
+      notes.appendChild(n);
+    });
+    sec.classList.remove('hidden');
+    observeReveal();
+    scheduleTrail();
+  } catch (e) { /* recenze nejsou zásadní, stránka funguje i bez nich */ }
 }
+
+/* Cvičný úkol: skryté slovo v prvních písmenech řádků. */
+(function puzzle() {
+  const form = document.getElementById('puzzleForm');
+  if (!form) return;
+  const input = document.getElementById('puzzleAnswer');
+  const msg = document.getElementById('puzzleMsg');
+  const note = document.getElementById('puzzleNote');
+  const win = document.getElementById('puzzleWin');
+  const hintBtn = document.getElementById('hintBtn');
+  const hintList = document.getElementById('hintList');
+  const hints = [
+    'Nezáleží jen na tom, co řádky říkají. Podívejte se, jak začínají.',
+    'Vezměte první písmeno každého řádku a přečtěte je shora dolů.'
+  ];
+  const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  let started = 0, used = 0, wrong = 0, solved = false;
+  const start = () => { if (!started) started = Date.now(); };
+  input.addEventListener('focus', start);
+  hintBtn.addEventListener('click', () => {
+    start();
+    if (used >= hints.length) return;
+    const item = el('div', 'hintItem', `Nápověda ${used + 1}: ${hints[used]}`);
+    hintList.appendChild(item);
+    used++;
+    if (used >= hints.length) { hintBtn.disabled = true; hintBtn.textContent = 'Nápovědy vyčerpány'; }
+    else hintBtn.textContent = `Další nápověda (${used}/${hints.length})`;
+  });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (solved) return;
+    start();
+    const ans = norm(input.value);
+    if (!ans) { msg.className = 'puzzleMsg'; msg.textContent = 'Napište skryté slovo.'; return; }
+    if (ans === 'stopa') {
+      solved = true;
+      const sec = Math.max(1, Math.round((Date.now() - started) / 1000));
+      const t = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+      note.classList.add('solved');
+      msg.className = 'puzzleMsg ok';
+      msg.textContent = `Správně! Slovo STOPA. Čas: ${t}${used ? `, nápověd: ${used}` : ', bez nápovědy'}. Přesně takhle začíná každá hra.`;
+      input.disabled = true;
+      hintBtn.classList.add('hidden');
+      win.classList.add('show');
+    } else {
+      wrong++;
+      msg.className = 'puzzleMsg bad';
+      msg.textContent = wrong >= 2 && used === 0 ? 'To není ono. Zkuste nápovědu, nikdo to nepočítá… zatím.' : 'To není ono. Podívejte se pozorněji.';
+      note.animate && !REDUCED && note.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 260 });
+    }
+  });
+})();
 
 observeReveal();
 loadGames();
+loadReviews();

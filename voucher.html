@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0a0908">
+  <title>Dárkový poukaz · Questplore</title>
+  <meta name="description" content="Darujte hru Questplore. Obdarovaný dostane herní kód a váš vzkaz.">
+  <link rel="icon" href="./nadvorni-start.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="home.css?v=9">
+</head>
+<body>
+  <a class="skip" href="#obsah">Přeskočit na formulář</a>
+  <header class="siteHeader" id="top">
+    <a class="brand" href="./home.html" aria-label="Questplore – úvod">QUEST<i>PLORE</i></a>
+    <nav class="nav" aria-label="Hlavní navigace">
+      <a href="./home.html#hry">Hry</a>
+      <a href="./home.html#ukazka">Zkuste si</a>
+      <a class="navCta" href="./">Mám kód</a>
+    </nav>
+  </header>
+
+  <main id="obsah" class="formWrap">
+    <a class="crumb" href="./home.html">← Zpět na úvod</a>
+    <div class="dossier paperForm paperText" data-tab="Dárkový poukaz">
+      <div id="formView">
+        <p class="eyebrow" style="color:#7a5a12">Objednávka poukazu</p>
+        <h1>Darujte první stopu.</h1>
+        <p class="lead">Vyplňte krátký formulář. Ozveme se vám s pokyny k platbě a po jejím přijetí vám pošleme dárkový poukaz s herním kódem a vaším vzkazem.</p>
+
+        <form id="giftForm" novalidate>
+          <div class="fgrid">
+            <div class="full">
+              <label for="gGame">Hra</label>
+              <select id="gGame" required><option value="">Načítám hry…</option></select>
+            </div>
+            <div>
+              <label for="gBuyer">Vaše jméno</label>
+              <input id="gBuyer" autocomplete="name" maxlength="100" required>
+            </div>
+            <div>
+              <label for="gEmail">Váš e-mail</label>
+              <input id="gEmail" type="email" autocomplete="email" maxlength="200" required>
+            </div>
+            <div>
+              <label for="gRecipient">Pro koho je dárek <span style="text-transform:none;letter-spacing:0;font-weight:400">(nepovinné)</span></label>
+              <input id="gRecipient" maxlength="100" placeholder="Např. Petra a Honza">
+            </div>
+            <div class="full">
+              <label for="gMessage">Váš vzkaz <span style="text-transform:none;letter-spacing:0;font-weight:400">(nepovinné, vytiskne se na poukaz)</span></label>
+              <textarea id="gMessage" maxlength="500" placeholder="Ať se vám povede odhalit pravdu!"></textarea>
+            </div>
+            <div class="hp" aria-hidden="true">
+              <label for="gWebsite">Nevyplňujte toto pole</label>
+              <input id="gWebsite" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="full">
+              <label class="check"><input type="checkbox" id="gConsent" required> <span>Souhlasím, že údaje použijete jen k vyřízení této objednávky a ozvete se mi na zadaný e-mail.</span></label>
+            </div>
+            <div class="full">
+              <div class="formMsg" id="gMsg" role="alert"></div>
+              <button class="btn ink" type="submit" id="gSubmit">Odeslat objednávku</button>
+              <p style="font-size:13px;color:#5b5243;margin:12px 0 0">Odesláním se nic neplatí. Cenu a platební údaje dostanete v odpovědi.</p>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div id="doneView" class="done hidden">
+        <span class="stamp">Odesláno</span>
+        <h2>Děkujeme, objednávka dorazila.</h2>
+        <p>Ozveme se vám na zadaný e-mail s pokyny k platbě. Po jejím přijetí vám pošleme dárkový poukaz s herním kódem.</p>
+        <p style="margin-top:22px"><a class="btn ink" href="./home.html">Zpět na úvod</a></p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="brand">QUEST<i>PLORE</i></div>
+    <div class="footerText">Příběhy, které se odehrávají kolem vás.</div>
+    <nav class="footerLinks" aria-label="Odkazy v patičce">
+      <a href="./home.html">Všechny hry</a>
+      <a href="./">Spustit hru s kódem</a>
+    </nav>
+  </footer>
+
+  <script src="site.js?v=5"></script>
+  <script src="voucher.js?v=5" defer></script>
+</body>
+</html>

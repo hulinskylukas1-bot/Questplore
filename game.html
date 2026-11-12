@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0a0908">
+  <title>Hra · Questplore</title>
+  <meta name="description" content="Spis hry Questplore: co vás čeká, jak dlouho to trvá a co potřebujete.">
+  <link rel="icon" href="./nadvorni-start.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="home.css?v=9">
+</head>
+<body>
+  <a class="skip" href="#obsah">Přeskočit na obsah</a>
+  <header class="siteHeader" id="top">
+    <a class="brand" href="./home.html" aria-label="Questplore – úvod">QUEST<i>PLORE</i></a>
+    <nav class="nav" aria-label="Hlavní navigace">
+      <a href="./home.html#hry">Hry</a>
+      <a href="./home.html#ukazka">Zkuste si</a>
+      <a href="./voucher.html">Dárek</a>
+      <a class="navCta" href="./">Mám kód</a>
+    </nav>
+  </header>
+
+  <main id="obsah">
+    <div id="gameRoot" aria-live="polite" aria-busy="true">
+      <section class="gameHead"><div class="skeleton"></div></section>
+    </div>
+    <noscript><section class="section"><p>Pro zobrazení hry je potřeba zapnout JavaScript.</p></section></noscript>
+  </main>
+
+  <dialog class="lightbox" id="lightbox" aria-label="Fotografie">
+    <button class="btn ghost" type="button" id="lightboxClose">Zavřít ✕</button>
+    <img id="lightboxImg" alt="">
+  </dialog>
+
+  <footer class="footer">
+    <div class="brand">QUEST<i>PLORE</i></div>
+    <div class="footerText">Příběhy, které se odehrávají kolem vás.</div>
+    <nav class="footerLinks" aria-label="Odkazy v patičce">
+      <a href="./home.html">Všechny hry</a>
+      <a href="./">Spustit hru s kódem</a>
+      <a href="#top">Nahoru ↑</a>
+    </nav>
+  </footer>
+
+  <script src="site.js?v=5"></script>
+  <script src="game.js?v=5" defer></script>
+</body>
+</html>

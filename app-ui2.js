@@ -185,6 +185,7 @@ function renderRatingBox(){
  el.innerHTML=`<div class="bubble task ratingBubble"><div class="text">Jak se vám hra líbila?</div>
    <div class="stars" role="radiogroup" aria-label="Hodnocení hry">${[1,2,3,4,5].map(n=>`<button type="button" class="star" data-n="${n}" role="radio" aria-checked="false" aria-label="${n} z 5">★</button>`).join('')}</div>
    <textarea class="ratingComment" rows="3" maxlength="1000" placeholder="Chcete nám něco vzkázat? (nepovinné)"></textarea>
+   <label class="ratingConsent"><input type="checkbox" class="ratingConsentBox"> <span>Souhlasím, že mohou váš komentář anonymně zveřejnit na webu Questplore.</span></label>
    <button type="button" class="btn ratingSend" disabled>Odeslat hodnocení</button>
    <div class="result muted"></div></div>`;
  feed.appendChild(el);
@@ -199,7 +200,7 @@ function renderRatingBox(){
    if(!rating)return;
    send.disabled=true;res.textContent='Odesílám…';
    try{
-     await submitRating(rating,el.querySelector('.ratingComment').value);
+     await submitRating(rating,el.querySelector('.ratingComment').value,el.querySelector('.ratingConsentBox').checked);
      try{localStorage.setItem(ratedKey(),'1')}catch{}
      el.innerHTML='<div class="bubble"><div class="text">Děkujeme za vaše hodnocení.</div></div>';
    }catch(e){res.textContent='Hodnocení se nepodařilo odeslat. Zkuste to znovu.';send.disabled=false}
