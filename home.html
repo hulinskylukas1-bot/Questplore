@@ -16,7 +16,7 @@
   <meta name="twitter:image" content="https://hulinskylukas1-bot.github.io/Questplore/og-image.png">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./og-image.png">
-  <link rel="stylesheet" href="home.css?v=11">
+  <link rel="stylesheet" href="home.css?v=12">
 </head>
 <body>
   <a class="skip" href="#hry">Přeskočit na hry</a>
@@ -36,20 +36,14 @@
     <section class="hero" aria-labelledby="heroTitle">
       <div class="heroInner">
         <span class="stamp" aria-hidden="true">Přísně tajné</span>
-        <p class="eyebrow">Spis č. 001 · Venkovní příběhové hry</p>
+        <p class="eyebrow">Venkovní příběhové hry</p>
         <h1 id="heroTitle">Město je plné příběhů.<br><span>Stačí je odhalit.</span></h1>
         <p class="heroLead">
           Vyrazte s týmem do ulic, hledejte skutečné stopy a nechte se vést příběhem,
-          který se odehrává přímo kolem vás. Stačí telefon, nic se neinstaluje.
+          který se odehrává přímo kolem vás. Stačí jen chytrý telefon, který ti pomůže vše odhalit.
         </p>
-        <p class="heroNote">OBSAH SLOŽKY: <button class="redact" type="button" aria-label="Odhalit skrytý text">jedno velké spiknutí</button>, tým odvážlivců a váš telefon.</p>
         <div class="heroActions">
           <a class="btn primary" href="#hry">Vybrat hru</a>
-          <form class="codeForm" action="./" method="get" aria-label="Zadat herní kód">
-            <label class="sr" for="heroCode">Herní kód</label>
-            <input id="heroCode" name="code" placeholder="Máte herní kód?" autocomplete="off" autocapitalize="characters" spellcheck="false">
-            <button class="btn ghost" type="submit">Hrát</button>
-          </form>
         </div>
         <ul class="heroMeta" aria-label="Základní informace">
           <li>📍 Skutečná místa</li>
@@ -59,10 +53,21 @@
       </div>
     </section>
 
+    <section class="codeStrip" aria-label="Zadat herní kód">
+      <div class="codeStripInner">
+        <p><strong>Už máte herní kód?</strong> Zadejte ho a pokračujte ve hře.</p>
+        <form class="codeForm" action="./" method="get" aria-label="Zadat herní kód">
+          <label class="sr" for="stripCode">Herní kód</label>
+          <input id="stripCode" name="code" placeholder="Např. HA-1234-ABCD" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          <button class="btn ghost" type="submit">Hrát</button>
+        </form>
+      </div>
+    </section>
+
     <section class="section" id="hry" data-trail aria-labelledby="hryTitle">
       <div class="sectionHead">
-        <p class="eyebrow">Otevřené spisy</p>
-        <h2 id="hryTitle">Vyberte si případ.</h2>
+        <p class="eyebrow">Venkovní hry</p>
+        <h2 id="hryTitle">Vyberte si příběh.</h2>
       </div>
       <div id="games" class="games" aria-live="polite" aria-busy="true">
         <div class="skeleton"></div>
@@ -118,21 +123,21 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
           </span>
           <h3>Získejte herní kód</h3>
-          <p>Po zakoupení hry dostanete unikátní kód. Ten otevře váš příběh na jakémkoli telefonu.</p>
+          <p>Po zakoupení hry dostanete unikátní kód, kterým příběh otevřete. Stačí jakýkoliv chytrý telefon s připojením k internetu a zapnutou polohou.</p>
         </li>
         <li class="step reveal">
           <span class="stepIcon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
           </span>
           <h3>Vyrazte na místo</h3>
-          <p>Hra vás provede skutečnými místy. Hledejte detaily, stopy a souvislosti kolem sebe.</p>
+          <p>Na začátku víte jen místo startu. Hra vás pak provede skutečnou trasou s úkoly. Hledejte detaily, stopy a souvislosti kolem sebe.</p>
         </li>
         <li class="step reveal">
           <span class="stepIcon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8"/></svg>
           </span>
           <h3>Řešte a odhalujte</h3>
-          <p>Odpovídejte, fotografujte důkazy, ověřujte polohu a odemykejte další části příběhu.</p>
+          <p>Odpovídejte na otázky, řešte šifry, fotografujte důkazy, ověřujte polohu a odemykejte další části příběhu.</p>
         </li>
       </ol>
     </section>
@@ -214,7 +219,7 @@
     </nav>
   </footer>
 
-  <script src="site.js?v=5"></script>
+  <script src="site.js?v=6"></script>
   <script src="home.js?v=5" defer></script>
 </body>
 </html>
