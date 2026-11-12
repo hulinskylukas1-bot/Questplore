@@ -427,9 +427,10 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
 
   <style>
 #mapPickDialog{width:min(780px,calc(100% - 32px))}
-#pickMap{height:min(58vh,440px);border-radius:12px;border:1px solid var(--line);margin:10px 0;background:#222}
+#pickMap{height:min(52vh,420px);border-radius:12px;border:1px solid var(--line);margin:10px 0;background:#222}
 .map-pick-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
-.map-search{display:flex;gap:8px}.map-search input{flex:1}
+.radius-row{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;margin:4px 0 10px}.radius-row input[type=range]{padding:0;accent-color:#e0b45c}.radius-num{display:flex;align-items:center;gap:6px}.radius-num input{width:92px}.radius-num span{color:var(--muted)}@media(max-width:700px){.radius-row{grid-template-columns:1fr auto}.radius-row label{grid-column:1/-1}}
+.map-search{display:flex;flex-wrap:wrap;gap:8px}.map-search input{flex:1 1 220px;min-width:0}
 .check-issues{display:grid;gap:8px;max-height:52vh;overflow:auto;margin:12px 0}
 .issue{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;background:#111419}
 .issue.error{border-color:#7a3036;background:#2a1618}.issue.warn{border-color:#6b5a2a;background:#262114}
@@ -488,6 +489,11 @@ dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);c
       <h2>Vybrat bod na mapě</h2>
       <form id="mapSearchForm" class="map-search"><input id="mapSearchInput" placeholder="Hledat adresu nebo místo (např. Lazaretní, Praha)"><button type="submit" class="secondary">Hledat</button><button type="button" id="mapLocateBtn" class="secondary">Moje poloha</button></form>
       <div id="pickMap"></div>
+      <div class="radius-row">
+        <label for="pickRadiusRange" style="margin:0">Rádius ověření</label>
+        <input id="pickRadiusRange" type="range" min="5" max="300" step="5" value="40">
+        <div class="radius-num"><input id="pickRadiusNum" type="number" min="1" max="10000" step="1" value="40" inputmode="numeric"><span>m</span></div>
+      </div>
       <div id="mapPickInfo" class="muted">Klikněte do mapy, kam má hráč dojít. Kruh ukazuje rádius ověření.</div>
       <div class="dialog-actions">
         <button type="button" id="mapPickCancel" class="secondary">Zrušit</button>
@@ -1459,9 +1465,17 @@ function showCheckDialog(issues,forPublish){
 }
 
 /* ===== Výběr GPS bodu na mapě ===== */
-let pickMap=null,pickMarker=null,pickCircle=null,pickInputs=null;
+let pickMap=null,pickMarker=null,pickCircle=null,pickInputs=null,pickRadius=40;
+function setPickRadius(v,from){
+  let n=Math.round(Number(v));if(!Number.isFinite(n)||n<1)n=1;if(n>10000)n=10000;
+  pickRadius=n;
+  if(from!=='range')$('pickRadiusRange').value=Math.min(n,Number($('pickRadiusRange').max));
+  if(from!=='num')$('pickRadiusNum').value=n;
+  if(pickCircle)pickCircle.setRadius(n);
+  if(pickMarker){const p=pickMarker.getLatLng();$('mapPickInfo').textContent=`Vybraný bod: ${p.lat.toFixed(6)}, ${p.lng.toFixed(6)} · rádius ${n} m`}
+}
 function setPickPoint(lat,lng,pan=true){
-  const rad=Number(pickInputs?.radI?.value)||40;
+  const rad=pickRadius;
   if(!pickMarker){
     pickMarker=L.marker([lat,lng],{draggable:true}).addTo(pickMap);
     pickMarker.on('dragend',()=>{const p=pickMarker.getLatLng();setPickPoint(p.lat,p.lng,false)});
@@ -1476,6 +1490,7 @@ function openMapPicker(card){
   const latI=card.querySelector('.smart-lat'),lngI=card.querySelector('.smart-lng'),radI=card.querySelector('.smart-radius');
   if(!latI||!lngI)return;
   pickInputs={latI,lngI,radI};
+  setPickRadius(Number(radI?.value)||40);
   $('mapSearchInput').value='';
   $('mapPickDialog').showModal();
   setTimeout(()=>{
@@ -1499,13 +1514,17 @@ function openMapPicker(card){
     }
   },60);
 }
+$('pickRadiusRange').oninput=e=>setPickRadius(e.target.value,'range');
+$('pickRadiusNum').oninput=e=>{if(e.target.value!=='')setPickRadius(e.target.value,'num')};
+$('pickRadiusNum').onchange=e=>setPickRadius(e.target.value||40);
 $('mapPickCancel').onclick=()=>$('mapPickDialog').close();
 $('mapPickUse').onclick=()=>{
   if(!pickMarker||!pickInputs)return;
   const p=pickMarker.getLatLng();
   pickInputs.latI.value=p.lat.toFixed(6);pickInputs.lngI.value=p.lng.toFixed(6);
-  [pickInputs.latI,pickInputs.lngI].forEach(x=>x.dispatchEvent(new Event('input',{bubbles:true})));
-  $('mapPickDialog').close();toast('Souřadnice vloženy – nezapomeňte uložit blok');
+  if(pickInputs.radI)pickInputs.radI.value=pickRadius;
+  [pickInputs.latI,pickInputs.lngI,pickInputs.radI].filter(Boolean).forEach(x=>x.dispatchEvent(new Event('input',{bubbles:true})));
+  $('mapPickDialog').close();toast('Souřadnice a rádius vloženy – nezapomeňte uložit blok');
 };
 $('mapLocateBtn').onclick=()=>{
   if(!navigator.geolocation){alert('Prohlížeč neumí zjistit polohu.');return}
