@@ -1319,7 +1319,10 @@ function smartFields(block,content){
     const lat=c.latitude??c.lat??'',lng=c.longitude??c.lng??'',configured=lat!==''&&lat!==null&&lng!==''&&lng!==null;
     html+=`<div class="smart-grid three"><label>Zeměpisná šířka<input class="smart-lat" type="number" step="any" min="-90" max="90" value="${esc(lat)}"></label><label>Zeměpisná délka<input class="smart-lng" type="number" step="any" min="-180" max="180" value="${esc(lng)}"></label><label>Rádius (m)<input class="smart-radius" type="number" min="1" max="10000" value="${esc(c.radius_m??c.radius??40)}"></label></div><div class="map-pick-row"><button type="button" class="secondary pick-on-map">🗺 Vybrat na mapě</button><label class="check" style="margin:0"><input class="smart-show-guide" type="checkbox" ${c.show_guide===false?'':'checked'}> Ukazovat hráči vzdálenost a směr k cíli</label></div><div class="gps-state ${configured?'ready':'pending'}">${configured?`✓ GPS validace je připravená. Hráč musí být v okruhu ${esc(c.radius_m??c.radius??40)} m.`:'Souřadnice zatím nejsou nastavené. Player nemůže rozhodnout, zda je hráč na správném místě.'}</div>`;
   }else if(t==='choice'){
-    html+=`<label>Možnosti <span class="hint">jedna na řádek</span><textarea class="smart-options">${esc(arr(c.options).map(o=>typeof o==='string'?o:(o.text??o.label??o.value??'')).join('\n'))}</textarea></label>`;
+    const optTexts=arr(c.options).map(o=>typeof o==='string'?o:(o.text??o.label??o.value??''));
+    const curCorrect=(c.correct_index===undefined||c.correct_index===null||c.correct_index==='')?'':String(Number(c.correct_index));
+    html+=`<label>Možnosti <span class="hint">jedna na řádek</span><textarea class="smart-options" oninput="refreshCorrectOptions(this)">${esc(optTexts.join('\n'))}</textarea></label>`;
+    html+=`<label>Správná odpověď <span class="hint">hráč jinou možnost nepustí dál. „Žádná“ = projde libovolná volba (např. větvení příběhu).</span><select class="smart-correct-option"><option value="">Žádná (libovolná volba)</option>${optTexts.map((o,i)=>`<option value="${i}" ${String(i)===curCorrect?'selected':''}>${i+1}. ${esc(o)}</option>`).join('')}</select></label>`;
   }else if(t==='quiz'){
     html+=`<label>Otázky <span class="hint">formát: otázka | A ; B ; C | číslo správné možnosti</span><textarea class="smart-quiz-questions" rows="7">${esc(quizQuestionsText(c.questions))}</textarea></label>`;
   }else if(t==='sorting'){
@@ -1349,6 +1352,13 @@ function smartFields(block,content){
   return html;
 }
 
+function refreshCorrectOptions(ta){
+  const sel=ta.closest('.block')?.querySelector('.smart-correct-option');if(!sel)return;
+  const cur=sel.value,opts=ta.value.split('\n').map(x=>x.trim()).filter(Boolean);
+  sel.innerHTML='<option value="">Žádná (libovolná volba)</option>'+opts.map((o,i)=>`<option value="${i}">${i+1}. ${esc(o)}</option>`).join('');
+  sel.value=(cur!==''&&Number(cur)<opts.length)?cur:'';
+}
+window.refreshCorrectOptions=refreshCorrectOptions;
 function collectSmart(card,block,originalContent){
   const config={...(block.config||{})},q=s=>card.querySelector(s),main=q('.smart-main')?.value??'';
   const key=Object.prototype.hasOwnProperty.call(originalContent,'text')?'text':Object.prototype.hasOwnProperty.call(originalContent,'prompt')?'prompt':'text';
@@ -1357,6 +1367,7 @@ function collectSmart(card,block,originalContent){
   if(q('.smart-lat')){const lr=q('.smart-lat').value.trim(),gr=q('.smart-lng').value.trim(),lat=lr===''?null:Number(lr),lng=gr===''?null:Number(gr),radius=Number(q('.smart-radius').value||40);if(lat!==null&&(Number.isNaN(lat)||lat<-90||lat>90))throw new Error('Zeměpisná šířka musí být mezi -90 a 90.');if(lng!==null&&(Number.isNaN(lng)||lng<-180||lng>180))throw new Error('Zeměpisná délka musí být mezi -180 a 180.');if(!Number.isFinite(radius)||radius<1)throw new Error('Rádius musí být alespoň 1 metr.');config.latitude=lat;config.longitude=lng;config.radius_m=radius;config.validation=(lat!==null&&lng!==null)?'radius':'pending_coordinates'}
   if(q('.smart-show-guide'))config.show_guide=q('.smart-show-guide').checked;
   if(q('.smart-options'))config.options=lines(q('.smart-options').value);
+  if(q('.smart-correct-option')){const cv=q('.smart-correct-option').value;if(cv===''){delete config.correct_index;delete config.retry_on_wrong}else{if(Number(cv)>=(config.options||[]).length)throw new Error('Správná odpověď musí odpovídat jedné z možností.');config.correct_index=Number(cv);config.retry_on_wrong=true}}
   if(q('.smart-quiz-questions'))config.questions=parseQuizQuestions(q('.smart-quiz-questions').value);
   if(q('.smart-items')){const items=parseSortingItems(q('.smart-items').value),ids=items.map(x=>x.id),correct=lines(q('.smart-correct-order').value);if(new Set(ids).size!==ids.length)throw new Error('ID řazených položek musí být unikátní.');if(correct.length){if(correct.length!==items.length)throw new Error('Správné pořadí musí obsahovat stejný počet položek.');for(const id of correct)if(!ids.includes(id))throw new Error(`ID „${id}“ není mezi položkami.`);config.correct_order=correct;config.validation='exact_order'}else{config.correct_order=[];config.validation='pending'}config.items=items;config.layout=q('.smart-sort-layout')?.value||'list';config.success_text=q('.smart-success-text')?.value||''}
   if(q('.smart-grid-rows')){const rows=lines(q('.smart-grid-rows').value),cols=parseLogicColumns(q('.smart-grid-columns').value);if(new Set(rows).size!==rows.length)throw new Error('Názvy řádků logické tabulky musí být unikátní.');config.rows=rows;config.columns=cols;config.correct=parseLogicCorrect(q('.smart-grid-correct').value,rows,cols);config.success_text=q('.smart-success-text')?.value||''}
