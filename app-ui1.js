@@ -197,7 +197,7 @@ function appendBlock(b){
  const wrap=document.createElement('div');
  wrap.className='reveal'; wrap.innerHTML=blockHTML(b);
  if(b.block_type!=='image' && b.config?.image_url){
-   const markup=`<img class="media block-illustration" src="${esc(b.config.image_url)}" alt="Obrázek k úkolu" loading="lazy">`;
+   const markup=`<img class="media block-illustration" src="${esc(b.config.image_url)}" alt="Obrázek k úkolu" loading="eager" decoding="async">`;
    const target=wrap.querySelector('.bubble .text');
    if(target)target.insertAdjacentHTML('afterend',markup);
    else wrap.querySelector('.bubble')?.insertAdjacentHTML('afterbegin',markup);
