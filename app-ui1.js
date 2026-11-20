@@ -345,6 +345,8 @@ function bindBlock(w,b){
  const gps=w.querySelector('.gpsbtn');
  if(gps) gps.onclick=()=>{
    const r=w.querySelector('.result');
+   const pv=window.QUESTPLORE_PREVIEW;
+   if(pv&&(pv.skipGps||(cfg.latitude??cfg.lat)==null||(cfg.longitude??cfg.lng)==null)){r.textContent=pv.skipGps?'Test bez souřadnic – poloha se neověřuje.':'Náhled: cílové souřadnice zatím nejsou nastavené.';gps.disabled=true;unlock();return}
    if(!window.isSecureContext){r.textContent='GPS v telefonu vyžaduje HTTPS. Použij online testovací adresu Playeru v0.6.';return}
    if(!navigator.geolocation){r.textContent='Tento prohlížeč neumí zjistit polohu.';return}
    gps.disabled=true;r.textContent='Ověřuji polohu…';
@@ -390,7 +392,7 @@ function bindBlock(w,b){
    try{
      const uploaded=await uploadPhotoEvidence(file,b);
      const ev={evidence_id:uploaded.evidence_id,storage_path:uploaded.storage_path,file_name:uploaded.file_name,size_bytes:file.size,mime_type:file.type||null};
-     r.textContent='Fotografie byla bezpečně uložena.';
+     r.textContent=window.QUESTPLORE_PREVIEW?'Náhled: fotografie se v testovacím režimu neukládá.':'Fotografie byla bezpečně uložena.';
      const result=await persistProgress(b,'photo_uploaded',ev);
      if(result.accepted!==false)unlock();
    }catch(e){
