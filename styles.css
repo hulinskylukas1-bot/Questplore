@@ -93,6 +93,7 @@
 .logic-grid-task .logicCheck{margin-top:4px}
 
 /* Images attached to ordinary game blocks */
+.emph{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 .block-illustration{display:block;width:auto;max-width:100%;height:auto;max-height:520px;object-fit:contain;margin:14px auto;border-radius:10px;background:#fff}
 
 /* Časovač hry */
