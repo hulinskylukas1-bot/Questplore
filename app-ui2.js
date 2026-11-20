@@ -477,4 +477,4 @@ async function startup(){
    if(box)box.textContent=`Předchozí session se nepodařilo obnovit: ${e.message}`;
  }
 }
-startup();
+if(!window.QUESTPLORE_PREVIEW)startup();

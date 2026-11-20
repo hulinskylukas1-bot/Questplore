@@ -28,7 +28,7 @@ index.html, app-core.js, app-ui1.js, app-ui2.js, styles.css   hráčský přehr�
 home.html/.css/.js, game.html/.js, voucher.html/.js, site.js  zákaznický web
 purchase.html/.js/.css                                        testovací nákup (jen test!)
 admin/index.html                                              administrace (jeden velký soubor, ~2100 řádků)
-admin/preview.html                                            testovací náhled hry v adminu (starší kopie přehrávače)
+admin/preview.html                                            testovací náhled hry v adminu (spouští skutečný přehrávač app-*.js, žádná vlastní kopie)
 brand/                                                        logo (SVG), návrhy, přehled
 favicon.svg, og-image.png                                     ikona a obrázek pro sdílení odkazů
 supabase/                                                     schéma, migrace, zálohy edge funkcí, README
@@ -41,6 +41,7 @@ commerce/README.md                                            poznámky k testov
 ### Přehrávač (`app-*.js`)
 - Hráč zadá kód → edge funkce `start-player-session` vrátí obsah hry a relaci (`session_token`). Stav hry (`state`) se ukládá přes RPC `save_game_progress`, mezi zařízeními se synchronizuje dotazováním `get_session_progress` (~1× za sekundu).
 - Bloky hry: narrator_message, instruction, document, image, text_answer, choice, quiz, sorting, logic_grid, gps, photo, confirm, conditional_message, draft_placeholder (nedokončené, hráči se nezobrazuje). Přechody mezi částmi (stages) řídí tabulka `transitions` (větvení podle volby).
+- **Náhled v administraci** (`admin/preview.html`, tlačítko Otestovat) načítá stejné `app-*.js` a `styles.css`, jen jim místo hráčské relace předá obsah hry z administrace (`window.QUESTPLORE_PREVIEW`). Změna ve hře se tedy v náhledu projeví sama; v přehrávači nesmí chybět `if(!window.QUESTPLORE_PREVIEW)startup();` na konci `app-ui2.js` a drobné větve pro náhled u GPS a fotek v `app-ui1.js`.
 - Funkce: časovač (běží od začátku do konce, **bez pauz**), nápovědy (zaznamenané), ukazatel vzdálenosti a směru k GPS cíli (volitelně u bloku, `show_guide`), záznam chybných pokusů (`log_game_event`), hodnocení na konci se souhlasem se zveřejněním, **limit 24 hodin** (po vypršení hra definitivně končí).
 - Verze souborů se obchází cache přes `?v=NNN` v `index.html` (aktuálně `126`). **Při změně `app-*.js` nebo `styles.css` zvyš číslo.** Stejně `home.css?v=`, `site.js?v=`, `home.js?v=` ve stránkách webu.
 
