@@ -171,7 +171,7 @@ function blockHTML(b){
  }
  if(t==='choice') {
    const opts=Array.isArray(cfg.options)?cfg.options:[];
-   return `<div class="bubble task" data-id="${b.id}"><div class="text">${esc(txt)}</div><div class="choices">${opts.map((o,i)=>{let v=typeof o==='string'?o:(o.id??o.value??o.text??o.label??i),lab=typeof o==='string'?o:(o.text??o.label??String(v));return `<button class="btn secondary choice" data-value="${esc(v)}">${esc(lab)}</button>`}).join('')}</div><div class="result muted"></div>${hintHTML(b)}</div>`;
+   return `<div class="bubble task" data-id="${b.id}"><div class="text">${esc(txt)}</div><div class="choices">${opts.map((o,i)=>{let v=typeof o==='string'?o:(o.id??o.value??o.text??o.label??i),lab=typeof o==='string'?o:(o.text??o.label??String(v));return `<button class="btn secondary choice" data-value="${esc(v)}" data-index="${i}">${esc(lab)}</button>`}).join('')}</div><div class="result muted"></div>${hintHTML(b)}</div>`;
  }
  if(t==='quiz'){
    const qs=Array.isArray(cfg.questions)?cfg.questions:[];
@@ -262,7 +262,15 @@ function bindBlock(w,b){
    else {w.classList.add('bad');setTimeout(()=>w.classList.remove('bad'),250);logAttempt(b,'text',{value:String(val).slice(0,200)})}
  };
  w.querySelectorAll('.choice').forEach(btn=>btn.onclick=()=>{
+   const hasCorrect=cfg.correct_index!==undefined&&cfg.correct_index!==null&&cfg.correct_index!=='';
+   if(hasCorrect&&Number(btn.dataset.index)!==Number(cfg.correct_index)){
+     const r=w.querySelector('.result');if(r)r.textContent='To není ono. Zkuste to znovu.';
+     btn.classList.add('bad');setTimeout(()=>btn.classList.remove('bad'),250);
+     logAttempt(b,'choice',{value:String(btn.dataset.value).slice(0,200)});
+     return;
+   }
    w.querySelectorAll('.choice').forEach(x=>x.disabled=true);
+   const okRes=w.querySelector('.result');if(okRes&&hasCorrect)okRes.textContent='Správně.';
    btn.classList.add('selected');
    state.lastChoice=btn.dataset.value; state.choices[b.id]=btn.dataset.value;
    const branch=cfg.branches?.[btn.dataset.value];
