@@ -158,11 +158,27 @@ function bindGpsGuide(w,cfg){
    startGpsGuide(w,cfg);
  };
 }
+/* Podtržení částí textu: config.emphasize_fragments = ["část textu", ...] (nerozlišuje velikost písmen) */
+function emphHTML(txt,cfg){
+ const frags=(Array.isArray(cfg?.emphasize_fragments)?cfg.emphasize_fragments:[]).map(x=>String(x||'').trim()).filter(Boolean);
+ if(!frags.length)return esc(txt);
+ const low=String(txt).toLowerCase(),ranges=[];
+ for(const f of frags){
+   const fl=f.toLowerCase();let i=0;
+   while((i=low.indexOf(fl,i))>=0){ranges.push([i,i+fl.length]);i+=fl.length}
+ }
+ ranges.sort((a,b)=>a[0]-b[0]);
+ const merged=[];
+ for(const r of ranges){const l=merged[merged.length-1];if(l&&r[0]<=l[1])l[1]=Math.max(l[1],r[1]);else merged.push([r[0],r[1]])}
+ let out='',pos=0;
+ for(const [s,e] of merged){out+=esc(txt.slice(pos,s))+'<u class="emph">'+esc(txt.slice(s,e))+'</u>';pos=e}
+ return out+esc(txt.slice(pos));
+}
 function blockHTML(b){
  const c=b.content||{},cfg=b.config||{},t=b.block_type,txt=main(c);
- if(t==='conditional_message'||t==='narrator_message') return `<div class="bubble narrator"><div class="text">${esc(txt)}</div></div>`;
- if(t==='instruction') return `<div class="bubble instruction"><div class="text">${esc(txt)}</div></div>`;
- if(t==='document') return `<div class="bubble"><div class="doc text">${esc(txt)}</div>${cfg.url?`<a class="docLink" href="${esc(cfg.url)}" target="_blank" rel="noopener">Otevřít dokument</a>`:''}</div>`;
+ if(t==='conditional_message'||t==='narrator_message') return `<div class="bubble narrator"><div class="text">${emphHTML(txt,cfg)}</div></div>`;
+ if(t==='instruction') return `<div class="bubble instruction"><div class="text">${emphHTML(txt,cfg)}</div></div>`;
+ if(t==='document') return `<div class="bubble"><div class="doc text">${emphHTML(txt,cfg)}</div>${cfg.url?`<a class="docLink" href="${esc(cfg.url)}" target="_blank" rel="noopener">Otevřít dokument</a>`:''}</div>`;
  if(t==='image') return `<div class="bubble">${cfg.url||(/^https?:/.test(cfg.storage_path||'')?cfg.storage_path:'')?`<img src="${esc(cfg.url||cfg.storage_path)}" class="media">`:`<div class="placeholder">Obrázek zatím není nahraný.</div>`}</div>`;
  if(t==='confirm') return `<div class="bubble task" data-id="${b.id}"><div class="text">${esc(txt)}</div><button class="btn confirmbtn">${esc(cfg.button_label||'Pokračovat')}</button>${hintHTML(b)}</div>`;
  if(t==='text_answer'||t==='multi_term_answer'){
