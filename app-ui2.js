@@ -8,7 +8,7 @@ function markSolvedUI(w,b){
  }
  w.querySelectorAll('button').forEach(x=>x.disabled=true);
  if(resp?.kind==='choice'){
-   w.querySelectorAll('.choice').forEach(btn=>{if(String(btn.dataset.value)===String(resp.value))btn.classList.add('selected')});
+   w.querySelectorAll('.choice').forEach(btn=>{if(String(btn.dataset.value)===String(resp.value)){btn.classList.add('selected');const ci=b.config?.correct_index;if(ci!==undefined&&ci!==null&&ci!=='')btn.classList.add('quiz-correct')}});
  }
  if(b.block_type==='quiz'){
    Object.entries(state.quizAnswers||{}).forEach(([key,oi])=>{
