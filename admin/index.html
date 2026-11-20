@@ -1463,6 +1463,7 @@ function previewUrl(blockId=null,stageId=null,useGps=true){
   const u=new URL('./preview.html',location.href);
   u.searchParams.set('version',version.id);
   u.searchParams.set('build','gps-test-5');
+  u.searchParams.set('t',Date.now());
   u.searchParams.set('gps',useGps?'1':'0');
   if(blockId)u.searchParams.set('block',blockId);
   if(stageId)u.searchParams.set('stage',stageId);
